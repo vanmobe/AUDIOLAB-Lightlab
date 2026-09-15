@@ -1,7 +1,6 @@
 import { PatchWorkspace } from './PatchWorkspace'
 import { StageEditor } from './StageEditor'
 import { ControlSurfaceEditor } from './ControlSurfaceEditor'
-import { LiveControlSurface } from './LiveControlSurface'
 import { SidePanel } from './SidePanel'
 import { LiveTransportBar } from './LiveTransportBar'
 import { AudioInputSettings } from './AudioInputSettings'
@@ -11,12 +10,10 @@ import { loadActivePackage, persistActivePackage } from './active-package'
 import { ShowRegieSettings } from './ShowRegieSettings'
 import { safetyLabel } from './CoverageStatus'
 import { createLookTransitionPlayer, type TransitionResult } from './look-transitions'
-import { LiveLookLibrary } from './LiveLookLibrary'
 import { ShowDashboard } from './ShowDashboard'
 import { lookLayerSummary } from './LookEditor'
 import { createAudioLivePlayer, type AudioLiveSource } from './audio-live'
 import { PatternDetails } from './PatternDetails'
-import { LiveGroupControls } from './LiveGroupControls'
 import { emptyLiveControls, linkedGroupIds, livePreview } from './live-controls'
 import './flow.css'
 import './workspace-flow.css'
@@ -52,6 +49,7 @@ import { adjacentLookId, isLiveShortcutTextInput, liveShortcutAction } from './l
 import { WorkspaceNavigation, type Workspace } from './WorkspaceNavigation'
 import { DesignNavigation, type DesignSection } from './DesignNavigation'
 import { BrowserLiveStage } from './BrowserLiveStage'
+import { BrowserLiveControls } from './BrowserLiveControls'
 
 // Access to the browser Storage object itself may throw; defer it into the guarded loader.
 const activeStorage = {
@@ -1083,62 +1081,22 @@ export default function App() {
                       </div>
                     </section>
                   )}
-                  {!rehearsing && (
-                    <>
-                      <div className="controller-switch" role="group" aria-label="Schermbediening">
-                        <button aria-pressed={liveController === 'looks'} onClick={() => setLiveController('looks')}>
-                          Looks
-                        </button>
-                        <button aria-pressed={liveController === 'wing'} onClick={() => setLiveController('wing')}>
-                          WING-banken
-                        </button>
-                      </div>
-                      <div hidden={liveController !== 'wing'}>
-                        <LiveControlSurface
-                          show={show}
-                          state={state}
-                          modified={Object.keys(liveControls.overrides).length > 0}
-                          linkedGroups={show.groups
-                            .filter((group) => linkedGroupIds(show, liveControls, group.id).length > 1)
-                            .map((group) => group.id)}
-                          onLook={triggerLiveLook}
-                          onMode={setMode}
-                          onColor={(id) => setState((current) => ({ ...current, colorLockId: id }))}
-                          onIntensity={setGroupIntensity}
-                          onConfigure={() => setWorkspace('control')}
-                        />
-                      </div>
-                    </>
-                  )}
-                  {!rehearsing && (
-                    <details className="live-group-panel">
-                      <summary>
-                        Groepen apart bedienen / koppelen
-                        {Object.keys(liveControls.overrides).length > 0
-                          ? ` · ${Object.keys(liveControls.overrides).length} aangepast`
-                          : ''}
-                      </summary>
-                      <LiveGroupControls show={show} state={state} controls={liveControls} onChange={setLiveControls} />
-                    </details>
-                  )}
                   {!rehearsing ? (
-                    <div hidden={liveController !== 'looks'}>
-                      <LiveLookLibrary
-                        show={show}
-                        activeLookId={
-                          state.mode === 'automation' &&
-                          !state.colorLockId &&
-                          !Object.keys(liveControls.overrides).length
-                            ? state.activeLookId
-                            : undefined
-                        }
-                        currentLookId={state.activeLookId}
-                        armedLookId={armedLookId}
-                        mode={state.mode}
-                        onArm={setArmedLookId}
-                        onSelect={triggerLiveLook}
-                      />
-                    </div>
+                    <BrowserLiveControls
+                      show={show}
+                      state={state}
+                      controls={liveControls}
+                      controller={liveController}
+                      armedLookId={armedLookId}
+                      onControllerChange={setLiveController}
+                      onLook={triggerLiveLook}
+                      onMode={setMode}
+                      onColorLock={(id) => setState((current) => ({ ...current, colorLockId: id }))}
+                      onIntensity={setGroupIntensity}
+                      onControlsChange={setLiveControls}
+                      onArm={setArmedLookId}
+                      onConfigure={() => setWorkspace('control')}
+                    />
                   ) : (
                     <section>
                       <p className="section-label">LOOKS</p>

@@ -23,6 +23,7 @@ jobs:
         with:
           global-json-file: global.json
       - run: npm ci
+      - run: dotnet restore Lightlab.slnx
       - run: npm run format:check
       - run: dotnet format Lightlab.slnx --verify-no-changes --no-restore
       - run: npm run verify

@@ -4,18 +4,21 @@ using System.Net.Sockets;
 using System.Text.Json;
 using Lightflow.Runtime;
 
-static class PlaybackOutputChecks {
+static class PlaybackOutputChecks
+{
     static void Check(bool ok, string message) { if (!ok) throw new Exception(message); }
     static InspectionPatch Patch(InspectionRoute[]? routes = null) => new([
         new("a", "varytec-theater-spot-100", "2ch", new(1, 1)),
         new("b", "varytec-theater-spot-100", "2ch", new(2, 511))
     ], routes ?? [new("r1", 1, "artnet", "127.0.0.1", true), new("r2", 2, "sacn", "127.0.0.1", true)]);
-    static InspectionUniverse[] Frame() {
+    static InspectionUniverse[] Frame()
+    {
         var first = new int[512]; first[0] = 123;
         var second = new int[512]; second[511] = 234;
         return [new(1, "artnet", true, first, []), new(2, "sacn", true, second, [])];
     }
-    public static async Task Run() {
+    public static async Task Run()
+    {
         var transport = new RecordedDmxSender();
         var ownership = new OutputOwnership();
         var raw = new OutputSession(ownership);
@@ -49,7 +52,8 @@ static class PlaybackOutputChecks {
         await raw.ArmAsync(new("127.0.0.1", 1, "sacn")); await raw.DisarmAsync();
 
         foreach (var badRoutes in new InspectionRoute[][] { [], [new("r", 1, "artnet", "127.0.0.1", false)],
-            [new("r1", 1, "artnet", "127.0.0.1", true), new("r2", 2, "sacn", "bad/path", true)] }) {
+            [new("r1", 1, "artnet", "127.0.0.1", true), new("r2", 2, "sacn", "bad/path", true)] })
+        {
             var bad = Patch(badRoutes);
             await output.ResetAsync("bad", bad);
             Check(output.Status.ArmError is not null, "Missing/disabled/invalid routes are explained before arming");
@@ -58,7 +62,8 @@ static class PlaybackOutputChecks {
         }
         var resolverCalls = 0;
         var resolvedSender = new RecordedDmxSender();
-        var resolved = new PlaybackOutput(createSender: () => resolvedSender, resolveHost: (_, _) => {
+        var resolved = new PlaybackOutput(createSender: () => resolvedSender, resolveHost: (_, _) =>
+        {
             resolverCalls++; return Task.FromResult(new[] { IPAddress.Loopback });
         });
         var namedPatch = Patch([new("r1", 1, "artnet", "test.local", true), new("r2", 2, "sacn", "test.local", true)]);
@@ -111,7 +116,8 @@ static class PlaybackOutputChecks {
         Console.WriteLine("Continuous output checks passed: explicit arm, snapshot routes, two universes/protocols, cadence, sequence, blackout/termination, mutual exclusion, deadline/fault recovery, autonomous lifecycle and real sACN loopback; no physical hardware.");
     }
 
-    static async Task SessionLifecycle() {
+    static async Task SessionLifecycle()
+    {
         using var show = JsonDocument.Parse("""{"groups":[{"id":"front","intensity":0.7},{"id":"wash","intensity":0.8}],"fixtures":[{"id":"a","profileId":"varytec-theater-spot-100","modeId":"2ch","patch":{"universe":1,"address":1}},{"id":"b","profileId":"varytec-theater-spot-100","modeId":"2ch","patch":{"universe":2,"address":511}}],"routes":[{"id":"r1","universe":1,"protocol":"artnet","host":"127.0.0.1","enabled":true},{"id":"r2","universe":2,"protocol":"sacn","host":"127.0.0.1","enabled":true}],"looks":[{"id":"look-a"},{"id":"look-b"}]}""");
         var transports = new List<RecordedDmxSender>();
         var evaluator = new PlaybackFakeEvaluator();
@@ -148,20 +154,23 @@ static class PlaybackOutputChecks {
         Check(transports[^1].Disposed && !session.Status.OutputSent && output.Status.State == "disarmed", "Explicit Stop closes physical transport");
         var shutdownSender = new RecordedDmxSender();
         var shutdownOutput = new PlaybackOutput(createSender: () => shutdownSender);
-        await using (var shutdown = new PlaybackSession(() => new PlaybackFakeEvaluator(), output: shutdownOutput)) {
+        await using (var shutdown = new PlaybackSession(() => new PlaybackFakeEvaluator(), output: shutdownOutput))
+        {
             var final = await shutdown.StartAsync(new(1, show.RootElement, 120, "look-a"), default);
             await shutdown.OutputCommandAsync(new(1, final.SessionId!, "arm", true), default);
         }
         Check(shutdownSender.Disposed && shutdownOutput.Status.State == "disarmed", "Companion disposal shuts down armed output");
     }
 
-    static async Task Loopback() {
+    static async Task Loopback()
+    {
         // Only loopback is used. A conflict on this local protocol port fails the test rather than contacting a real node.
         using var receiver = new UdpClient(new IPEndPoint(IPAddress.Loopback, 5568));
         var patch = Patch([new("r1", 1, "sacn", "127.0.0.1", true), new("r2", 2, "sacn", "127.0.0.1", true)]);
         var output = new PlaybackOutput();
         await output.ResetAsync("loopback", patch); await output.ArmAsync("loopback", patch, default);
-        try {
+        try
+        {
             await output.SendAsync(Frame());
             using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(2));
             var first = await receiver.ReceiveAsync(deadline.Token); var second = await receiver.ReceiveAsync(deadline.Token);
@@ -172,17 +181,21 @@ static class PlaybackOutputChecks {
             for (var i = 0; i < 12; i++) shutdown.Add((await receiver.ReceiveAsync(deadline.Token)).Buffer);
             Check(shutdown.Count(p => p[112] == 0x40) == 6 && shutdown.All(p => p.AsSpan(126).ToArray().All(v => v == 0)),
                 "Actual UDP receiver observes full blackout then three terminations for each sACN universe");
-        } finally { await output.DisarmAsync(); }
+        }
+        finally { await output.DisarmAsync(); }
     }
 
-    static async Task ArtNetLoopback() {
+    static async Task ArtNetLoopback()
+    {
         UdpClient receiver;
         try { receiver = new(new IPEndPoint(IPAddress.Parse("127.0.0.2"), 6454)); }
-        catch (SocketException error) when (error.SocketErrorCode == SocketError.AddressNotAvailable) {
+        catch (SocketException error) when (error.SocketErrorCode == SocketError.AddressNotAvailable)
+        {
             Console.WriteLine("Art-Net real UDP check skipped: OS has no 127.0.0.2 loopback address; no network aliases were changed. ArtDmx packets/transport selection are covered by deterministic tests.");
             return;
         }
-        using (receiver) {
+        using (receiver)
+        {
             using var sender = new UdpDmxDatagramSender(IPAddress.Loopback);
             var values = new byte[512]; values[0] = 42; values[511] = 211;
             using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(2));
@@ -194,11 +207,13 @@ static class PlaybackOutputChecks {
     }
 }
 
-sealed class RecordedDmxSender : IDmxDatagramSender {
+sealed class RecordedDmxSender : IDmxDatagramSender
+{
     public ConcurrentQueue<(byte[] Packet, IPEndPoint Endpoint)> Packets { get; } = new();
     public bool Fail, Block, Disposed;
     public TaskCompletionSource Entered { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-    public async Task SendAsync(byte[] packet, IPEndPoint endpoint, CancellationToken token) {
+    public async Task SendAsync(byte[] packet, IPEndPoint endpoint, CancellationToken token)
+    {
         if (Fail) throw new SocketException();
         if (Block) { Entered.TrySetResult(); await Task.Delay(Timeout.Infinite, token); }
         token.ThrowIfCancellationRequested();

@@ -8,7 +8,7 @@ afterEach(() => vi.unstubAllGlobals())
 
 it('renders Lightlab while retaining the user show from legacy storage', () => {
   const saved = { ...initialShow, name: 'Mijn bestaande tour' }
-  const getItem = vi.fn((key: string) => key === 'lightflow-show-v1' ? JSON.stringify(saved) : null)
+  const getItem = vi.fn((key: string) => (key === 'lightflow-show-v1' ? JSON.stringify(saved) : null))
   vi.stubGlobal('localStorage', { getItem })
   // Rendering the shell without effects protects the branding/storage seam, not WebGL.
   const markup = renderToStaticMarkup(<App />)

@@ -2,8 +2,10 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Lightflow.Runtime;
 
-static class InspectionChecks {
-    public static void Run() {
+static class InspectionChecks
+{
+    public static void Run()
+    {
         static void Check(bool value, string message) { if (!value) throw new Exception(message); }
         static InspectionFixture Fixture(string id, string profile, string mode, int address, int universe = 1) => new(id, profile, mode, new(universe, address));
         static InspectionFrameFixture Frame(string id, double intensity = .5, string color = "#ff8040", double haze = 0, InspectionSegment[]? segments = null) => new(id, intensity, color, haze, segments);
@@ -33,10 +35,14 @@ static class InspectionChecks {
         Check(rows.Values.All(r => r.Channels.Length == r.ChannelLabels.Length), "Every inspected channel has its trusted label");
         // Recipes produce a one-head segment even for ordinary PARs/fronts/grouped bars.
         // Deliberately conflicting aggregate values prove that the explicit head is not silently ignored.
-        var singleHeads = DmxInspection.Inspect(request with { Frame = request.Frame with {
-            Fixtures = request.Frame.Fixtures.Select(f => f.FixtureId is "adj4" or "adj6" or "tri3" or "front"
-                ? f with { Intensity = .9, Color = "#ff0000", Segments = [new(.25, "#00ff00")] } : f).ToArray()
-        } });
+        var singleHeads = DmxInspection.Inspect(request with
+        {
+            Frame = request.Frame with
+            {
+                Fixtures = request.Frame.Fixtures.Select(f => f.FixtureId is "adj4" or "adj6" or "tri3" or "front"
+                    ? f with { Intensity = .9, Color = "#ff0000", Segments = [new(.25, "#00ff00")] } : f).ToArray()
+            }
+        });
         var singleRows = singleHeads.Universes.SelectMany(u => u.Fixtures).ToDictionary(f => f.FixtureId);
         Check(singleRows["adj4"].Channels.SequenceEqual(new[] { 0, 64, 0, 0 }) && singleRows["tri3"].Channels.SequenceEqual(new[] { 0, 64, 0 }), "Single-head recipe uses explicit segment intensity and color");
         Check(singleRows["adj6"].Channels.SequenceEqual(new[] { 0, 255, 0, 0, 32, 64 }) && singleRows["front"].Channels.SequenceEqual(new[] { 64, 0 }), "Master-dimmer and fixed-white recipes use single segment intensity");
@@ -45,7 +51,8 @@ static class InspectionChecks {
         Check(blackout.Universes.All(u => u.Channels.All(v => v == 0)), "Blackout overrides inconsistent nonzero browser levels and shutter constants");
         Check(DmxInspection.Inspect(request).Universes[0].Channels.SequenceEqual(result.Universes[0].Channels), "Blackout cannot mutate later inspection or its input");
 
-        void Reject(InspectionRequest invalid, string code) {
+        void Reject(InspectionRequest invalid, string code)
+        {
             var bad = DmxInspection.Inspect(invalid);
             Check(bad.Universes.Length == 0 && bad.Issues.Any(i => i.Severity == "error" && i.Code == code), "Invalid request fails atomically: " + code);
         }
@@ -88,7 +95,8 @@ static class InspectionChecks {
 
         var json = JsonSerializer.Serialize(request, DmxInspection.JsonOptions);
         Check(JsonSerializer.Deserialize<InspectionRequest>(json, DmxInspection.JsonOptions)?.RequestId == request.RequestId, "Strict request roundtrip");
-        void RejectJson(string malformed) {
+        void RejectJson(string malformed)
+        {
             try { JsonSerializer.Deserialize<InspectionRequest>(malformed, DmxInspection.JsonOptions); throw new Exception("Malformed contract accepted"); } catch (JsonException) { }
         }
         var spoof = JsonNode.Parse(json)!; spoof["patch"]!["fixtures"]![0]!["verifiedForLiveOutput"] = true;

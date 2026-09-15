@@ -13,7 +13,11 @@ function localRuntimePlugin(): Plugin {
       manager = createRuntimeManager({ root: fileURLToPath(new URL('.', import.meta.url)) })
       server.middlewares.use(manager.middleware)
       // Await child cleanup before Vite exits or reloads its configuration.
-      interrupt = () => { void server.close().then(() => { process.exitCode = 0 }) }
+      interrupt = () => {
+        void server.close().then(() => {
+          process.exitCode = 0
+        })
+      }
       process.once('SIGINT', interrupt)
     },
     async closeBundle() {

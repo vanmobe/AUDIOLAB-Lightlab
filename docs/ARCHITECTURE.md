@@ -19,12 +19,12 @@ React editor and Three.js simulator
 
 ## Ownership boundaries
 
-| Area | Owns | Must not own |
-| --- | --- | --- |
-| `src/` | Editor state, browser persistence, shared show model, browser simulation and runtime clients | Hardware lifecycle or transport writes |
-| `runtime-worker/` | Autonomous execution of the shared TypeScript evaluator | UI, browser storage or simulator rendering |
-| `runtime/` | Loopback API, session lifecycle, Node worker supervision, AI providers and hardware adapters | Editor state or creative frame evaluation duplicated in C# |
-| `scripts/` | Local server supervision, host-native packaging and artifact integrity checks | Product-domain rules |
+| Area              | Owns                                                                                         | Must not own                                               |
+| ----------------- | -------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `src/`            | Editor state, browser persistence, shared show model, browser simulation and runtime clients | Hardware lifecycle or transport writes                     |
+| `runtime-worker/` | Autonomous execution of the shared TypeScript evaluator                                      | UI, browser storage or simulator rendering                 |
+| `runtime/`        | Loopback API, session lifecycle, Node worker supervision, AI providers and hardware adapters | Editor state or creative frame evaluation duplicated in C# |
+| `scripts/`        | Local server supervision, host-native packaging and artifact integrity checks                | Product-domain rules                                       |
 
 ## Non-negotiable rules
 
@@ -41,13 +41,13 @@ React editor and Three.js simulator
 
 ## Change guide
 
-| Change | Primary owner | Required validation |
-| --- | --- | --- |
-| Show schema, frame math or patterns | `src/` domain plus worker | TypeScript tests, worker test and runtime contract coverage when its input changes |
-| Browser workflow or persistence | `src/` feature and storage modules | Component/domain tests; browser acceptance where interaction changes |
-| Runtime endpoint or session behaviour | `runtime/` | .NET contract harness and matching browser-client tests |
-| DMX/WING protocol behaviour | `runtime/` adapter | Packet/adapter tests; explicit physical acceptance before release |
-| Packaging or launcher behaviour | `scripts/` | Launcher/distribution tests and a host-native package check |
+| Change                                | Primary owner                      | Required validation                                                                |
+| ------------------------------------- | ---------------------------------- | ---------------------------------------------------------------------------------- |
+| Show schema, frame math or patterns   | `src/` domain plus worker          | TypeScript tests, worker test and runtime contract coverage when its input changes |
+| Browser workflow or persistence       | `src/` feature and storage modules | Component/domain tests; browser acceptance where interaction changes               |
+| Runtime endpoint or session behaviour | `runtime/`                         | .NET contract harness and matching browser-client tests                            |
+| DMX/WING protocol behaviour           | `runtime/` adapter                 | Packet/adapter tests; explicit physical acceptance before release                  |
+| Packaging or launcher behaviour       | `scripts/`                         | Launcher/distribution tests and a host-native package check                        |
 
 ## Verification and release
 

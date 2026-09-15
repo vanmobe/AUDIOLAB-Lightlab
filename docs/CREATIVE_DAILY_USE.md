@@ -10,17 +10,17 @@ Coverage counts controllable non-haze light points at or above a configured inte
 
 ## Build tracks
 
-| Track | Coverage |
-| --- | --- |
-| Implementation | Required: shared creative engine + additive saved settings, provider traces, IndexedDB library, version actions, local launcher. |
-| Architecture / maintainability / code | Required: one shared evaluator, strict transport schemas, request-local traces, separate library adapter; no physical adapter changes. |
-| UX / user perspective / visual design | Required: progressive disclosure, honest coverage/trace status, safe recovery, keyboard/mobile modal, existing Lightlab styling. |
-| Security / API / compatibility | Required: no headers/secrets in traces, text-only display, bounded payloads; old shows/packages remain valid. |
-| Data lifecycle / database / observability | Required: explicit trace clearing/no history, bounded library records/transactions, invalid-item isolation, visible persistence errors. |
+| Track                                     | Coverage                                                                                                                                    |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Implementation                            | Required: shared creative engine + additive saved settings, provider traces, IndexedDB library, version actions, local launcher.            |
+| Architecture / maintainability / code     | Required: one shared evaluator, strict transport schemas, request-local traces, separate library adapter; no physical adapter changes.      |
+| UX / user perspective / visual design     | Required: progressive disclosure, honest coverage/trace status, safe recovery, keyboard/mobile modal, existing Lightlab styling.            |
+| Security / API / compatibility            | Required: no headers/secrets in traces, text-only display, bounded payloads; old shows/packages remain valid.                               |
+| Data lifecycle / database / observability | Required: explicit trace clearing/no history, bounded library records/transactions, invalid-item isolation, visible persistence errors.     |
 | Performance / testing / validation / risk | Required: deterministic coverage, phase/static priority, storage rejection/cancel/recovery, trace retries, actual browser + runtime checks. |
-| Release / documentation | Required: launcher prerequisites and ownership/shutdown, web/worker/runtime build together, honest platform gaps. |
-| Git / dependencies | Light: preserve current dirty project, no commits or branches, prefer native IndexedDB/Node/.NET without added packages. |
-| Compliance | N/a: no regulated workflow introduced; local user data remains local except explicit selected AI-provider requests. |
+| Release / documentation                   | Required: launcher prerequisites and ownership/shutdown, web/worker/runtime build together, honest platform gaps.                           |
+| Git / dependencies                        | Light: preserve current dirty project, no commits or branches, prefer native IndexedDB/Node/.NET without added packages.                    |
+| Compliance                                | N/a: no regulated workflow introduced; local user data remains local except explicit selected AI-provider requests.                         |
 
 Independent agents own creative core, AI trace and library slices. Main agent owns App integration, launcher, cross-review, actual browser validation and acceptance reporting.
 

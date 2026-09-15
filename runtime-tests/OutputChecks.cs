@@ -1,7 +1,9 @@
 using Lightflow.Runtime;
 
-static class OutputChecks {
-    public static async Task Run() {
+static class OutputChecks
+{
+    public static async Task Run()
+    {
         static void Check(bool value, string message) { if (!value) throw new Exception(message); }
         // Boundary slots catch a shifted DMP header without opening any network socket.
         var slots = new byte[512]; slots[0] = 17; slots[511] = 231;
@@ -18,17 +20,21 @@ static class OutputChecks {
         var terminal = DmxPackets.Sacn(1, new byte[512], cid, 2, terminated: true);
         Check(terminal[112] == 0x40 && packet[112] == 0 && terminal[111] == 2, "sACN terminal bit does not enable preview or sync options");
         Check(System.Text.Encoding.ASCII.GetString(terminal, 44, 16) == "Lightlab Runtime" && terminal[60] == 0, "Source name is bounded and zero terminated");
-        foreach (var invalidUniverse in new[] { 0, 32769 }) {
+        foreach (var invalidUniverse in new[] { 0, 32769 })
+        {
             try { DmxPackets.ArtNet(invalidUniverse, slots); throw new Exception("ArtDmx invalid universe accepted"); } catch (ArgumentException) { }
         }
-        foreach (var invalidUniverse in new[] { 0, 64000 }) {
+        foreach (var invalidUniverse in new[] { 0, 64000 })
+        {
             try { DmxPackets.Sacn(invalidUniverse, slots, cid, 0); throw new Exception("sACN invalid universe accepted"); } catch (ArgumentException) { }
         }
-        foreach (var invalidSlots in new[] { new byte[511], new byte[513] }) {
+        foreach (var invalidSlots in new[] { new byte[511], new byte[513] })
+        {
             try { DmxPackets.ArtNet(1, invalidSlots); throw new Exception("ArtDmx invalid payload accepted"); } catch (ArgumentException) { }
             try { DmxPackets.Sacn(1, invalidSlots, cid, 0); throw new Exception("sACN invalid payload accepted"); } catch (ArgumentException) { }
         }
-        foreach (var protocol in new[] { "artnet", "sacn" }) {
+        foreach (var protocol in new[] { "artnet", "sacn" })
+        {
             var max = protocol == "artnet" ? 32768 : 63999;
             Check(OutputRoute.IsValid("192.168.1.10", 1, protocol) && OutputRoute.IsValid("botex.local", max, protocol), "Route boundary universes accepted");
             Check(!OutputRoute.IsValid("127.0.0.1", 0, protocol) && !OutputRoute.IsValid("127.0.0.1", max + 1, protocol), "Route overflow rejected before packet truncation");
@@ -65,7 +71,8 @@ static class OutputChecks {
         await session.ArmAsync(new OutputRoute("old.local", 1, "artnet"));
         var routeEntered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var routeRelease = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var oldSend = session.SendAsync([], async (bytes, route, _) => {
+        var oldSend = session.SendAsync([], async (bytes, route, _) =>
+        {
             Check(route.Host == "old.local" && route.Port == 6454 && bytes.Length == 530, "Packet and destination use the same route snapshot");
             routeEntered.SetResult(); await routeRelease.Task;
         }, default);
@@ -73,7 +80,8 @@ static class OutputChecks {
         var rearm = session.ArmAsync(new OutputRoute("new.local", 3, "sacn"));
         Check(!rearm.IsCompleted, "Rearm cannot mix route fields during a send");
         routeRelease.SetResult(); await oldSend; await rearm;
-        await session.SendAsync([], (bytes, route, _) => {
+        await session.SendAsync([], (bytes, route, _) =>
+        {
             Check(route.Host == "new.local" && route.Port == 5568 && bytes.Length == 638 && bytes[114] == 3, "New route applied wholly after old send");
             return Task.CompletedTask;
         }, default);

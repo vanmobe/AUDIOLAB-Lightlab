@@ -1,41 +1,79 @@
-async (page) => {
-  const assert = (ok, message) => { if (!ok) throw new Error(message) }
+;async (page) => {
+  const assert = (ok, message) => {
+    if (!ok) throw new Error(message)
+  }
   await page.reload()
   await page.getByRole('button', { name: '1 · Setup', exact: true }).click()
   await page.setViewportSize({ width: 1440, height: 1000 })
   const saved = await page.evaluate(() => localStorage.getItem('lightflow-show-v1'))
   const markers = page.locator('.map-fixture')
-  const colors = () => markers.evaluateAll(nodes => nodes.map(node => getComputedStyle(node).backgroundColor))
+  const colors = () => markers.evaluateAll((nodes) => nodes.map((node) => getComputedStyle(node).backgroundColor))
   const originalColors = await colors()
   const wash = page.getByRole('button', { name: /^Selecteer groep Wash \(/ })
   const washMarker = page.locator('.map-fixture[data-group-id="wash"]').first()
-  const stageBounds = () => page.locator('.stage-map').evaluate(node => { const box = node.getBoundingClientRect(); return { top: box.top + scrollY, height: box.height } })
+  const stageBounds = () =>
+    page.locator('.stage-map').evaluate((node) => {
+      const box = node.getBoundingClientRect()
+      return { top: box.top + scrollY, height: box.height }
+    })
   await wash.hover()
-  assert(await washMarker.evaluate(node => getComputedStyle(node, '::after').borderTopWidth) === '3px', 'Hover emphasizes rings')
-  assert(await page.locator('.map-fixture[aria-pressed=true]').count() === 0, 'Hover does not select')
-  await wash.focus(); await wash.press('Enter')
-  assert(await page.locator('.map-fixture[aria-pressed=true]').count() === await page.locator('.map-fixture[data-group-id="wash"]').count(), 'Keyboard selects entire group')
-  assert(await page.locator('.map-fixture[aria-pressed=true]:not([data-group-id="wash"])').count() === 0, 'Only selected group')
-  assert(await washMarker.evaluate(node => getComputedStyle(node).borderTopColor) === 'rgb(255, 255, 255)', 'White selection remains')
+  assert(
+    (await washMarker.evaluate((node) => getComputedStyle(node, '::after').borderTopWidth)) === '3px',
+    'Hover emphasizes rings',
+  )
+  assert((await page.locator('.map-fixture[aria-pressed=true]').count()) === 0, 'Hover does not select')
+  await wash.focus()
+  await wash.press('Enter')
+  assert(
+    (await page.locator('.map-fixture[aria-pressed=true]').count()) ===
+      (await page.locator('.map-fixture[data-group-id="wash"]').count()),
+    'Keyboard selects entire group',
+  )
+  assert(
+    (await page.locator('.map-fixture[aria-pressed=true]:not([data-group-id="wash"])').count()) === 0,
+    'Only selected group',
+  )
+  assert(
+    (await washMarker.evaluate((node) => getComputedStyle(node).borderTopColor)) === 'rgb(255, 255, 255)',
+    'White selection remains',
+  )
   assert(JSON.stringify(await colors()) === JSON.stringify(originalColors), 'Type fills retained')
   const before = await stageBounds()
   await page.locator('.stage-workspace').screenshot({ path: 'output/playwright/stage-group-rings.png' })
   await page.getByRole('button', { name: 'Weergave', exact: true }).click()
   await page.getByRole('checkbox', { name: 'Groepsringen tonen', exact: true }).uncheck()
-  assert(await washMarker.evaluate(node => getComputedStyle(node, '::after').content) === 'none', 'Toggle hides actual ring')
-  assert(await wash.getAttribute('aria-pressed') === 'true', 'Toggle preserves selection')
+  assert(
+    (await washMarker.evaluate((node) => getComputedStyle(node, '::after').content)) === 'none',
+    'Toggle hides actual ring',
+  )
+  assert((await wash.getAttribute('aria-pressed')) === 'true', 'Toggle preserves selection')
   const after = await stageBounds()
   assert(before.top === after.top && before.height === after.height, 'View controls keep stage stable')
   await page.getByRole('checkbox', { name: 'Groepsringen tonen', exact: true }).check()
-  assert(await page.evaluate(() => localStorage.getItem('lightflow-show-v1')) === saved, 'All identification/selection controls leave saved show unchanged')
+  assert(
+    (await page.evaluate(() => localStorage.getItem('lightflow-show-v1'))) === saved,
+    'All identification/selection controls leave saved show unchanged',
+  )
   await page.getByRole('button', { name: 'Gereedschap sluiten', exact: true }).click()
   await page.setViewportSize({ width: 390, height: 844 })
   assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'No mobile overflow')
   await page.locator('.stage-workspace').screenshot({ path: 'output/playwright/stage-group-rings-mobile.png' })
   // Existing group movement must still operate through the fixture, not through ring hit targets.
-  const oldPositions = await page.evaluate(() => JSON.parse(localStorage.getItem('lightflow-show-v1')).fixtures.filter(f => f.groupId === 'wash').map(f => f.position[0]))
-  await washMarker.focus(); await washMarker.press('ArrowRight')
-  const movedPositions = await page.evaluate(() => JSON.parse(localStorage.getItem('lightflow-show-v1')).fixtures.filter(f => f.groupId === 'wash').map(f => f.position[0]))
-  assert(movedPositions.every((x, i) => x === oldPositions[i] + .25), 'Selected group still moves together')
+  const oldPositions = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem('lightflow-show-v1'))
+      .fixtures.filter((f) => f.groupId === 'wash')
+      .map((f) => f.position[0]),
+  )
+  await washMarker.focus()
+  await washMarker.press('ArrowRight')
+  const movedPositions = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem('lightflow-show-v1'))
+      .fixtures.filter((f) => f.groupId === 'wash')
+      .map((f) => f.position[0]),
+  )
+  assert(
+    movedPositions.every((x, i) => x === oldPositions[i] + 0.25),
+    'Selected group still moves together',
+  )
   return 'Group rings, keyboard selection, hover, white selection, unchanged type colors, toggle, stable layout, no show mutation and batch movement passed.'
 }

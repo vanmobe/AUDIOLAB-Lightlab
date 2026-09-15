@@ -13,17 +13,17 @@ De volledige scope blijft gelden. Daarna volgen de autonome runtimeklok, gevalid
 3. Voeg een compacte proef toe aan Patch & netwerk: Look, beat, modus, expliciete berekening, gegroepeerde kanaalwaarden en bruikbare foutmeldingen. Ongeldige/verouderde resultaten worden niet getoond als actuele meting.
 4. Test exacte bytes, meerdere universes, foutpaden, blackout en browserflow. Review implementatie onafhankelijk en documenteer beperkingen.
 
-| Track | Gewicht en aanpak |
-| --- | --- |
-| Implementatie | Vereist: runtimecompiler, trusted mappings, expliciete inspectie-API en browserclient. |
-| Architectuur, onderhoud, codekwaliteit | Vereist: pure compiler los van transport; geen tweede creatieve engine of ongebruikte sessielaag. Onafhankelijke review. |
-| Security, API, compatibiliteit | Vereist: loopback Origin/Host, body-/arraygrenzen, strikt contract, geen door client opgegeven kanaalmappen. Geen automatische wijziging van bestaande patches. |
-| UX, gebruikersperspectief, visueel | Vereist: dezelfde compacte disclosures/stijlen; duidelijke momentopname/geen output, dirty draft/stale/timeout/herstel. Desktop en mobiel controleren. |
-| Validatie, risico, testen | Vereist: golden channel vectors, grensadressen/overlap, tegengestelde blackout-input, complete fixturedekking, responsevalidatie, echte browser en HTTP zonder outputsends. |
+| Track                                     | Gewicht en aanpak                                                                                                                                                                      |
+| ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Implementatie                             | Vereist: runtimecompiler, trusted mappings, expliciete inspectie-API en browserclient.                                                                                                 |
+| Architectuur, onderhoud, codekwaliteit    | Vereist: pure compiler los van transport; geen tweede creatieve engine of ongebruikte sessielaag. Onafhankelijke review.                                                               |
+| Security, API, compatibiliteit            | Vereist: loopback Origin/Host, body-/arraygrenzen, strikt contract, geen door client opgegeven kanaalmappen. Geen automatische wijziging van bestaande patches.                        |
+| UX, gebruikersperspectief, visueel        | Vereist: dezelfde compacte disclosures/stijlen; duidelijke momentopname/geen output, dirty draft/stale/timeout/herstel. Desktop en mobiel controleren.                                 |
+| Validatie, risico, testen                 | Vereist: golden channel vectors, grensadressen/overlap, tegengestelde blackout-input, complete fixturedekking, responsevalidatie, echte browser en HTTP zonder outputsends.            |
 | Performance, observability, datalifecycle | Vereist: begrensde verwerking/resultaten, authored diagnostics, geen opslag/logging van snapshot/hosts, geen onbeperkte historie. Browserresultaat vervalt bij inputwijziging/unmount. |
-| Documentatie | Vereist: kanaalbronnen, API, bedieningspad, projectcontext en acceptatiebewijs. |
-| Delivery/Git/release | Licht: bestaande workspace behouden; geen commits/branches/publicatie gevraagd. Webapp en runtime samen testen; oude runtime toont herstelbare fout. |
-| Dependencies/database/compliance | N.v.t. voor nieuwe wijzigingen: geen nieuwe packages, database of gereguleerde gegevensstroom. Bestaande afhankelijkheden en lokale gegevensminimalisatie blijven gelden. |
+| Documentatie                              | Vereist: kanaalbronnen, API, bedieningspad, projectcontext en acceptatiebewijs.                                                                                                        |
+| Delivery/Git/release                      | Licht: bestaande workspace behouden; geen commits/branches/publicatie gevraagd. Webapp en runtime samen testen; oude runtime toont herstelbare fout.                                   |
+| Dependencies/database/compliance          | N.v.t. voor nieuwe wijzigingen: geen nieuwe packages, database of gereguleerde gegevensstroom. Bestaande afhankelijkheden en lokale gegevensminimalisatie blijven gelden.              |
 
 Parallel: kanaalbronnenonderzoek, runtimeimplementatie/API-review en frontendimplementatie. Hoofdagent integreert, bewaakt compatibiliteit, reviewt en test end-to-end. Fysieke uitvoer blijft uit tijdens deze ontwikkeling.
 
@@ -47,13 +47,20 @@ Request (alle getoonde velden verplicht; alleen `segments` is optioneel):
   "version": 1,
   "requestId": "example",
   "patch": {
-    "fixtures": [{"id":"front","profileId":"varytec-theater-spot-100","modeId":"2ch","patch":{"universe":1,"address":1}}],
+    "fixtures": [
+      {
+        "id": "front",
+        "profileId": "varytec-theater-spot-100",
+        "modeId": "2ch",
+        "patch": { "universe": 1, "address": 1 }
+      }
+    ],
     "routes": []
   },
   "frame": {
     "atBeats": 0,
     "mode": "automation",
-    "fixtures": [{"fixtureId":"front","intensity":0.5,"color":"#fff1d6","haze":0}]
+    "fixtures": [{ "fixtureId": "front", "intensity": 0.5, "color": "#fff1d6", "haze": 0 }]
   }
 }
 ```

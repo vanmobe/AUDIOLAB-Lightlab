@@ -3,9 +3,11 @@ using System.Text.Json.Nodes;
 using Lightflow.Runtime;
 using Microsoft.AspNetCore.Http;
 
-static class AiStreamingEndpointChecks {
+static class AiStreamingEndpointChecks
+{
     static void Check(bool condition, string name) { if (!condition) throw new Exception(name); }
-    public static async Task Run() {
+    public static async Task Run()
+    {
         var request = new ShowDesignRequest("Test", new("colorProfiles", 1, 0, 0, false), new());
         var context = new DefaultHttpContext(); context.Response.Body = new MemoryStream();
         await new AiStreamingResult(new SlowProvider(), request, null).ExecuteAsync(context);
@@ -25,9 +27,11 @@ static class AiStreamingEndpointChecks {
         Check(!Encoding.UTF8.GetString(((MemoryStream)aborted.Response.Body).ToArray()).Contains("\"type\":\"result\""), "Aborted client receives no late proposal and heartbeat stops");
         Console.WriteLine("AI endpoint checks passed: NDJSON/no-store, serialized heartbeat/result ordering, generic non-Ollama progress and typed busy error.");
     }
-    sealed class SlowProvider(bool busy = false) : IShowDesignProvider {
+    sealed class SlowProvider(bool busy = false) : IShowDesignProvider
+    {
         public string Id => "fake";
-        public async Task<ShowProposal> ProposeAsync(ShowDesignRequest request, CancellationToken token) {
+        public async Task<ShowProposal> ProposeAsync(ShowDesignRequest request, CancellationToken token)
+        {
             if (busy) throw new AiBusyException();
             await Task.Delay(5100, token);
             return new("fake", "Test", [], [], []);

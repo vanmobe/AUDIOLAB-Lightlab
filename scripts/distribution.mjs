@@ -5,11 +5,19 @@ import { resolve, relative, sep } from 'node:path'
 
 export function hostRuntime(platform = process.platform, arch = process.arch) {
   const systems = { darwin: 'osx', win32: 'win', linux: 'linux' }
-  if (!systems[platform] || !['arm64', 'x64'].includes(arch)) throw new Error('Niet-ondersteund distributieplatform. Gebruik macOS, Windows of Linux op x64/arm64.')
+  if (!systems[platform] || !['arm64', 'x64'].includes(arch))
+    throw new Error('Niet-ondersteund distributieplatform. Gebruik macOS, Windows of Linux op x64/arm64.')
   return `${systems[platform]}-${arch}`
 }
 export function packagePath(root, name) {
-  if (typeof name !== 'string' || !name || name.includes('\\') || name.split('/').some(part => !part || part === '.' || part === '..') || name.startsWith('/')) throw new Error('Ongeldig pad in distributiemanifest.')
+  if (
+    typeof name !== 'string' ||
+    !name ||
+    name.includes('\\') ||
+    name.split('/').some((part) => !part || part === '.' || part === '..') ||
+    name.startsWith('/')
+  )
+    throw new Error('Ongeldig pad in distributiemanifest.')
   const path = resolve(root, name)
   if (!path.startsWith(resolve(root) + sep)) throw new Error('Distributiepad buiten pakket.')
   return path
@@ -20,7 +28,9 @@ async function digest(file) {
   return hash.digest('hex')
 }
 export async function packageFiles(root) {
-  const files = []; let count = 0, bytes = 0
+  const files = []
+  let count = 0,
+    bytes = 0
   async function walk(folder, depth) {
     if (depth > 12) throw new Error('Distributiemap te diep genest.')
     for await (const entry of await opendir(folder)) {
@@ -47,20 +57,50 @@ export async function packageFiles(root) {
 export async function verifyDistribution(root) {
   const manifestPath = resolve(root, 'lightlab-distribution.json')
   const manifestInfo = await lstat(manifestPath)
-  if (!manifestInfo.isFile() || manifestInfo.isSymbolicLink() || manifestInfo.size > 1_000_000) throw new Error('Distributiemanifest ongeldig of te groot.')
+  if (!manifestInfo.isFile() || manifestInfo.isSymbolicLink() || manifestInfo.size > 1_000_000)
+    throw new Error('Distributiemanifest ongeldig of te groot.')
   const value = JSON.parse(await readFile(manifestPath, 'utf8'))
-  if (value.format !== 'lightlab-distribution' || value.version !== 1 || value.rid !== hostRuntime() || !Array.isArray(value.files) || value.files.length > 2048) throw new Error('Dit pakket is niet geschikt voor dit systeem of het manifest is ongeldig.')
-  const seen = new Set(); let total = 0
+  if (
+    value.format !== 'lightlab-distribution' ||
+    value.version !== 1 ||
+    value.rid !== hostRuntime() ||
+    !Array.isArray(value.files) ||
+    value.files.length > 2048
+  )
+    throw new Error('Dit pakket is niet geschikt voor dit systeem of het manifest is ongeldig.')
+  const seen = new Set()
+  let total = 0
   for (const entry of value.files) {
     packagePath(root, entry.path)
-    if (seen.has(entry.path) || !Number.isSafeInteger(entry.bytes) || entry.bytes < 0 || typeof entry.sha256 !== 'string' || !/^[a-f0-9]{64}$/.test(entry.sha256)) throw new Error('Ongeldige distributiecontrole.')
-    seen.add(entry.path); total += entry.bytes
+    if (
+      seen.has(entry.path) ||
+      !Number.isSafeInteger(entry.bytes) ||
+      entry.bytes < 0 ||
+      typeof entry.sha256 !== 'string' ||
+      !/^[a-f0-9]{64}$/.test(entry.sha256)
+    )
+      throw new Error('Ongeldige distributiecontrole.')
+    seen.add(entry.path)
+    total += entry.bytes
     if (total > 600_000_000) throw new Error('Distributie overschrijdt de verificatielimiet.')
   }
   const runtime = `runtime/Lightflow.Runtime${process.platform === 'win32' ? '.exe' : ''}`
-  for (const required of [runtime, `bin/node${process.platform === 'win32' ? '.exe' : ''}`, 'dist/index.html', 'runtime-worker/dist/engine.mjs', 'scripts/start-local.mjs', 'scripts/local-launcher.mjs', 'scripts/runtime-manager.mjs', 'scripts/distribution.mjs']) if (!seen.has(required)) throw new Error('Distributie mist een vereist onderdeel.')
+  for (const required of [
+    runtime,
+    `bin/node${process.platform === 'win32' ? '.exe' : ''}`,
+    'dist/index.html',
+    'runtime-worker/dist/engine.mjs',
+    'scripts/start-local.mjs',
+    'scripts/local-launcher.mjs',
+    'scripts/runtime-manager.mjs',
+    'scripts/distribution.mjs',
+  ])
+    if (!seen.has(required)) throw new Error('Distributie mist een vereist onderdeel.')
   // Compare every shipped file, not only filenames listed in a potentially incomplete manifest.
   const actual = await packageFiles(root)
-  if (JSON.stringify(actual) !== JSON.stringify([...value.files].sort((a, b) => a.path.localeCompare(b.path)))) throw new Error('Distributiecontrole mislukt. Pak een ongewijzigd Lightlab-pakket opnieuw uit; je browsergegevens blijven intact.')
+  if (JSON.stringify(actual) !== JSON.stringify([...value.files].sort((a, b) => a.path.localeCompare(b.path))))
+    throw new Error(
+      'Distributiecontrole mislukt. Pak een ongewijzigd Lightlab-pakket opnieuw uit; je browsergegevens blijven intact.',
+    )
   return { ...value, runtime: packagePath(root, runtime) }
 }

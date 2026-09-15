@@ -1,14 +1,17 @@
 using System.Text.Json;
 using Lightflow.Runtime;
 
-static class PlaybackAudioChecks {
-    public static async Task Run() {
+static class PlaybackAudioChecks
+{
+    public static async Task Run()
+    {
         static void Check(bool condition, string message) { if (!condition) throw new Exception(message); }
         using var show = JsonDocument.Parse("""{"groups":[{"id":"front","intensity":1}],"fixtures":[{"id":"a","profileId":"varytec-theater-spot-100","modeId":"2ch","patch":{"universe":1,"address":1}},{"id":"b","profileId":"varytec-theater-spot-100","modeId":"2ch","patch":{"universe":1,"address":3}}],"routes":[{"id":"r","universe":1,"protocol":"sacn","host":"test.local","enabled":true}],"looks":[{"id":"look-a"}]}""");
         var clock = new PlaybackTestTime(); var worker = new PlaybackFakeEvaluator();
         var sender = new RecordedDmxSender();
         var delayResolution = false;
-        var output = new PlaybackOutput(createSender: () => sender, timeProvider: clock, resolveHost: (_, _) => {
+        var output = new PlaybackOutput(createSender: () => sender, timeProvider: clock, resolveHost: (_, _) =>
+        {
             if (delayResolution) clock.Advance(1.1);
             return Task.FromResult(new[] { System.Net.IPAddress.Loopback });
         });
@@ -20,12 +23,14 @@ static class PlaybackAudioChecks {
         var wire = JsonSerializer.Serialize(attach, DmxInspection.JsonOptions);
         Check(JsonSerializer.Deserialize<PlaybackAudioCommand>(wire, DmxInspection.JsonOptions)!.Position!.Playing, "Audio wire roundtrip retains required boolean");
         foreach (var invalidWire in new[] { wire.Replace("\"playing\":true,", ""), wire.Replace("\"seconds\":1", "\"seconds\":1,\"seconds\":2"),
-            wire.Replace("\"floor\":0.1", "\"floor\":0.1,\"script\":true"), wire.Replace("\"time\":1", "\"time\":\"1\""), wire.Replace("\"bpm\":60,\"confidence\"", "\"confidence\"") }) {
+            wire.Replace("\"floor\":0.1", "\"floor\":0.1,\"script\":true"), wire.Replace("\"time\":1", "\"time\":\"1\""), wire.Replace("\"bpm\":60,\"confidence\"", "\"confidence\"") })
+        {
             try { JsonSerializer.Deserialize<PlaybackAudioCommand>(invalidWire, DmxInspection.JsonOptions); throw new Exception("Invalid audio wire accepted"); } catch (JsonException) { }
         }
         foreach (var invalid in new[] { attach with { Version = 2 }, attach with { AudioId = "x" }, attach with { Sequence = 1 },
             attach with { Analysis = analysis with { Duration = 601 } }, attach with { Analysis = analysis with { Kicks = [new(2, 1), new(1, 1)] } },
-            attach with { Position = position with { Seconds = 11 } }, attach with { Position = position with { Reactions = new() { ["unknown"] = "pulse" } } } }) {
+            attach with { Position = position with { Seconds = 11 } }, attach with { Position = position with { Reactions = new() { ["unknown"] = "pulse" } } } })
+        {
             try { await session.AudioCommandAsync(invalid, default); throw new Exception("Invalid audio accepted"); } catch (ArgumentException) { }
         }
         await session.AudioCommandAsync(attach, default);

@@ -15,6 +15,10 @@ it('cycles Looks and never treats text-entry controls as live commands', () => {
   const looks = initialShow.looks
   expect(adjacentLookId(looks, looks[0].id, 1)).toBe(looks[1].id)
   expect(adjacentLookId(looks, looks[0].id, -1)).toBe(looks[looks.length - 1]?.id)
-  expect(isLiveShortcutTextInput({ closest: (selector: string) => selector.includes('input') ? {} : null } as unknown as EventTarget)).toBe(true)
+  expect(
+    isLiveShortcutTextInput({
+      closest: (selector: string) => (selector.includes('input') ? {} : null),
+    } as unknown as EventTarget),
+  ).toBe(true)
   expect(isLiveShortcutTextInput(null)).toBe(false)
 })

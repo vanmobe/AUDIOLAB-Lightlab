@@ -33,6 +33,8 @@ release-facing changes:
 npm test
 npm run build
 dotnet run --project runtime-tests -c Release
+npm run format:check
+dotnet format Lightlab.slnx --verify-no-changes --no-restore
 npm run verify
 ```
 

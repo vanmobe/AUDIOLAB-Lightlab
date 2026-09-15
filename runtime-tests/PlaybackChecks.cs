@@ -1,14 +1,17 @@
 using System.Text.Json;
 using Lightflow.Runtime;
 
-static class PlaybackChecks {
-    public static async Task Run() {
+static class PlaybackChecks
+{
+    public static async Task Run()
+    {
         static void Check(bool ok, string message) { if (!ok) throw new Exception(message); }
         var transitionLooks = new HashSet<string> { "look-a", "look-b" };
         var transitionState = new PlaybackEngineState("automation", "look-b");
         var validTransition = new PlaybackTransition("queued", "look-a", "look-b", 4, 8, 0);
         Check(NodeShowEvaluator.ReadTransition(JsonSerializer.SerializeToElement(validTransition, DmxInspection.JsonOptions), transitionState, 1, transitionLooks) == validTransition, "Typed transition diagnostics preserve a valid queue");
-        foreach (var invalid in new[] { validTransition with { Phase = "unknown" }, validTransition with { ToLookId = "missing" }, validTransition with { Progress = .2 }, validTransition with { EndAtBeats = 40 }, validTransition with { StartAtBeats = -1 } }) {
+        foreach (var invalid in new[] { validTransition with { Phase = "unknown" }, validTransition with { ToLookId = "missing" }, validTransition with { Progress = .2 }, validTransition with { EndAtBeats = 40 }, validTransition with { StartAtBeats = -1 } })
+        {
             var rejected = false;
             try { NodeShowEvaluator.ReadTransition(JsonSerializer.SerializeToElement(invalid, DmxInspection.JsonOptions), transitionState, 1, transitionLooks); } catch (InvalidOperationException) { rejected = true; }
             Check(rejected, "Invalid transition diagnostics rejected before publication");
@@ -63,7 +66,8 @@ static class PlaybackChecks {
         workers[^1].Fail = true;
         try { await session.CommandAsync(new(1, restart.SessionId!, "bpm", Bpm: 60), default); throw new Exception("Evaluator failure hidden"); } catch (InvalidOperationException) { }
         Check(session.Status.Status == "faulted" && session.Snapshot is null && workers[^1].Disposed, "Evaluator failure clears stale memory and releases process");
-        foreach (var wrong in new[] { "beat", "mode", "fixtures" }) {
+        foreach (var wrong in new[] { "beat", "mode", "fixtures" })
+        {
             var next = await session.StartAsync(new(1, show.RootElement, 120, "look-a"), default);
             workers[^1].Wrong = wrong;
             try { await session.CommandAsync(new(1, next.SessionId!, "bpm", Bpm: 60), default); throw new Exception("Bad evaluator data accepted"); } catch (InvalidOperationException) { }
@@ -81,13 +85,15 @@ static class PlaybackChecks {
         Console.WriteLine("Playback checks passed: autonomous pump, two universes, monotonic BPM continuity, static hold, blackout, session fencing, stop and fault cleanup; fake evaluator only.");
     }
 }
-sealed class PlaybackTestTime : TimeProvider {
+sealed class PlaybackTestTime : TimeProvider
+{
     long ticks;
     public override long TimestampFrequency => TimeSpan.TicksPerSecond;
     public override long GetTimestamp() => Interlocked.Read(ref ticks);
     public void Advance(double seconds) => Interlocked.Add(ref ticks, (long)(seconds * TimeSpan.TicksPerSecond));
 }
-sealed class PlaybackFakeEvaluator : IShowEvaluator {
+sealed class PlaybackFakeEvaluator : IShowEvaluator
+{
     public bool Disposed, Fail, DisposeFails;
     public string? Wrong;
     public Action? DuringEvaluate;
@@ -97,7 +103,8 @@ sealed class PlaybackFakeEvaluator : IShowEvaluator {
     public Task<InspectionFrame> EvaluateAudioAsync(double beat, PlaybackEngineState state, PlaybackAudioPosition audio, CancellationToken cancellationToken, JsonElement? live = null)
         => EvaluateAsync(beat, state, cancellationToken, live);
     public Task<bool> ValidateLiveAsync(JsonElement live, CancellationToken cancellationToken) => Task.FromResult(!live.GetProperty("controls").GetProperty("overrides").TryGetProperty("invalid", out _));
-    public Task<InspectionFrame> EvaluateAsync(double beat, PlaybackEngineState state, CancellationToken cancellationToken, JsonElement? live = null) {
+    public Task<InspectionFrame> EvaluateAsync(double beat, PlaybackEngineState state, CancellationToken cancellationToken, JsonElement? live = null)
+    {
         if (Fail) throw new InvalidOperationException("Test failure");
         State = state;
         DuringEvaluate?.Invoke(); cancellationToken.ThrowIfCancellationRequested();

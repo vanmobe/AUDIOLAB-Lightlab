@@ -59,7 +59,15 @@ Wirevelden zijn gecontroleerd tegen de officiële [Art-Net-specificatie](https:/
 De bestaande loopback Host/Origin-policy geldt. `GET /playback/output?sessionId=...` is no-store en werkt voor de laatst bekende sessie, ook na stop. Stale sessies geven409. Status:
 
 ```json
-{"version":1,"sessionId":"...","state":"disarmed","routes":[{"universe":1,"protocol":"sacn","host":"127.0.0.1"}],"framesSent":0,"lastError":null,"armError":null}
+{
+  "version": 1,
+  "sessionId": "...",
+  "state": "disarmed",
+  "routes": [{ "universe": 1, "protocol": "sacn", "host": "127.0.0.1" }],
+  "framesSent": 0,
+  "lastError": null,
+  "armError": null
+}
 ```
 
 `state`: `disarmed`, `armed` of `faulted`. `routes` zijn kandidaatbestemmingen uit de snapshot, ook als uitvoer uit staat. `armError` beschrijft configuratieproblemen; null bewijst geen bereikbaarheid. `framesSent` telt volledig afgeronde universe-rondes, niet individuele pakketten of cleanup. Het reset bij een nieuwe sessie. `lastError` bevat uitsluitend authored diagnostiek.
@@ -67,7 +75,7 @@ De bestaande loopback Host/Origin-policy geldt. `GET /playback/output?sessionId=
 `POST /playback/output`, strikt JSON, maximaal4096bytes, versie1, geen onbekende/duplicaatvelden:
 
 ```json
-{"version":1,"sessionId":"...","command":"arm","confirmed":true}
+{ "version": 1, "sessionId": "...", "command": "arm", "confirmed": true }
 ```
 
 Uitschakelen: `command:"disarm"`, zonder `confirmed`. Arm vereist een draaiende sessie en haalt routes uitsluitend uit de gevalideerde snapshot. Stale sessies/conflicterende producer409; ongeldige invoer400; te groot413; geen JSON415; armdeadline504; transport/startfout503. Een verzendfout na geldig arm kan een200-status `faulted` opleveren: controleer altijd de status. Een verloren HTTP-antwoord is geen toestemming om arm automatisch te herhalen.

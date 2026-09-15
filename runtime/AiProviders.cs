@@ -3,14 +3,17 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 
 namespace Lightflow.Runtime;
+
 public record DesignOptions(string Scope, int ProfileCount, int ProgramCount, int LookCount, bool Revision, bool Replace = false);
 public record ShowDesignRequest(string Intent, DesignOptions Options, JsonObject Show, string? Model = null, bool IncludeTrace = false, int OllamaTimeoutMinutes = 15, string? Provider = null);
 public record ShowProposal(string Provider, string Summary, JsonArray ColorProfiles, JsonArray Programs, JsonArray Looks, string? Model = null, AiTrace? Trace = null);
-public interface IShowDesignProvider {
+public interface IShowDesignProvider
+{
     string Id { get; }
     Task<ShowProposal> ProposeAsync(ShowDesignRequest request, CancellationToken cancellationToken);
 }
-public static class DesignContract {
+public static class DesignContract
+{
     public static readonly string[] Collections = ["colorProfiles", "programs", "looks"];
     public static readonly string[] Effects = ["static", "pulse", "chase", "sequence", "random", "sparkle", "wave", "build"];
     public const string IdeaGenerationGuidance = "Act as an idea generator: propose candidates for the operator to audition and select, not an automatically accepted final show. The context colorProfiles, programs and looks are the COMPLETE existing creative library, including actual color values, pattern recipes and group layers, not just names. For generation without revision or replace, complement this library: compare palette color-role combinations, normalized recipe behavior and Look group composition/timing/palettes before proposing genuinely different ideas. A new ID or name does not make existing content new. Avoid near-identical palettes with tiny hex changes and Looks that merely rename the same composition. Where allowed, reference existing palettes and programs by their IDs instead of recreating them; familiar ingredients may form a genuinely different Look. Compare new candidates against each other as well as the existing library. For revision, deliberately improve the requested existing items while retaining their IDs; novelty is not a reason to replace unrelated items. Replace affects only the requested scope: all replaces all three creative collections; a scoped replace returns only that collection and may reference unchanged existing collections where the schema permits. Follow requested counts and scope; program count is a maximum. In the concise Dutch summary explain what these ideas add compared with the existing library and which existing ingredients are reused; never claim that anything has already been saved or accepted.";
@@ -20,15 +23,18 @@ public static class DesignContract {
     public static string PatternSummary(ShowDesignRequest r, int count, string summary) => (Count(r.Options, "programs") > count
         ? $"{(count == 0 ? "Geen nieuwe patronen voorgesteld: de collectie heeft geen vrije plaatsen of er zijn geen animaties om te verfijnen." : summary)} {count} unieke patronen voorgesteld (gevraagd maximum: {Count(r.Options, "programs")}). Gelijke recepten worden niet gedupliceerd. Timing stel je per groep in."
         : summary) + BandDesignContract.ScopeNote(r);
-    public static void ValidateRequest(ShowDesignRequest r) {
+    public static void ValidateRequest(ShowDesignRequest r)
+    {
         if (r.OllamaTimeoutMinutes is < 1 or > 60) throw new ArgumentException("Kies een Ollama-tijdslimiet van 1 tot 60 minuten.");
         if (string.IsNullOrWhiteSpace(r.Intent) || r.Intent.Length > 8000 || r.Options is null || r.Show is null || !(Collections.Contains(r.Options.Scope) || r.Options.Scope == "all")) throw new ArgumentException("Kies een ontwerpvraag en geldige scope.");
         if (r.Options.Replace && r.Options.Revision) throw new ArgumentException("Vervangen kan niet samen met verfijnen.");
         var requested = 0;
-        foreach (var key in Collections) {
+        foreach (var key in Collections)
+        {
             if (r.Show[key] is not JsonArray items) throw new ArgumentException("Showcontext ontbreekt.");
             var n = Count(r.Options, key);
-            if (r.Options.Scope == "all" || r.Options.Scope == key) {
+            if (r.Options.Scope == "all" || r.Options.Scope == key)
+            {
                 var minimum = r.Options.Scope == "all" && !r.Options.Replace ? 0 : 1;
                 if (n < minimum || n > 32) throw new ArgumentException($"Kies {minimum} tot 32 items.");
                 requested += n;
@@ -39,35 +45,51 @@ public static class DesignContract {
         if (r.Show["groups"] is not JsonArray) throw new ArgumentException("Groepen ontbreken.");
         if (r.Show.ToJsonString().Length > 2_000_000) throw new ArgumentException("Showcontext is te groot.");
         BandDesignContract.Profile(r.Show);
-        foreach (var key in Collections.Append("groups")) {
+        foreach (var key in Collections.Append("groups"))
+        {
             foreach (var item in (JsonArray)r.Show[key]!)
                 if (item is not JsonObject obj || obj["id"] is not JsonValue value || !value.TryGetValue<string>(out var id) || string.IsNullOrWhiteSpace(id))
                     throw new ArgumentException("Showcontext bevat een ongeldig item.");
         }
     }
     static object Obj(Dictionary<string, object> p) => new { type = "object", properties = p, required = p.Keys.ToArray(), additionalProperties = false };
-    public static object Schema() {
+    public static object Schema()
+    {
         object s = new { type = "string" }; object n = new { type = "number" };
         object arr(object x) => new { type = "array", items = x };
-        return Obj(new() {
+        return Obj(new()
+        {
             ["summary"] = s,
             ["colorProfiles"] = arr(Obj(new() { ["id"] = s, ["name"] = s, ["primary"] = s, ["secondary"] = s, ["accent"] = s, ["white"] = s, ["intensityLimit"] = n })),
             ["programs"] = arr(Obj(new() { ["id"] = s, ["name"] = s, ["effect"] = new { type = "string", @enum = Effects }, ["pattern"] = PatternContract.Schema(), ["targetGroupIds"] = arr(s), ["rateBeats"] = n, ["defaultColorProfileId"] = s })),
-            ["looks"] = arr(Obj(new() { ["id"] = s, ["name"] = s, ["programId"] = s, ["colorProfileId"] = s,
-                ["layers"] = arr(Obj(new() { ["groupId"] = s, ["mode"] = new { type = "string", @enum = new[] { "animation", "static", "off" } },
-                    ["programId"] = new { type = new[] { "string", "null" } }, ["colorProfileId"] = new { type = new[] { "string", "null" } },
+            ["looks"] = arr(Obj(new()
+            {
+                ["id"] = s,
+                ["name"] = s,
+                ["programId"] = s,
+                ["colorProfileId"] = s,
+                ["layers"] = arr(Obj(new()
+                {
+                    ["groupId"] = s,
+                    ["mode"] = new { type = "string", @enum = new[] { "animation", "static", "off" } },
+                    ["programId"] = new { type = new[] { "string", "null" } },
+                    ["colorProfileId"] = new { type = new[] { "string", "null" } },
                     ["intensity"] = new { type = "number", minimum = 0, maximum = 1 },
                     ["rateBeats"] = new { type = "number", minimum = 0.125, maximum = 64, description = "Explicit independent group duration in beats, default 1. Larger is slower; never inherit timing from a pattern." },
-                    ["offsetBeats"] = new { type = "number", minimum = -64, maximum = 64, description = "Default 0. Periodic phase=(beat-offsetBeats)/effectiveRateBeats; positive delays, negative advances. Not a startup delay." } })) }))
+                    ["offsetBeats"] = new { type = "number", minimum = -64, maximum = 64, description = "Default 0. Periodic phase=(beat-offsetBeats)/effectiveRateBeats; positive delays, negative advances. Not a startup delay." }
+                }))
+            }))
         });
     }
 
-    public static JsonObject SchemaForRequest(ShowDesignRequest r) {
+    public static JsonObject SchemaForRequest(ShowDesignRequest r)
+    {
         var schema = JsonSerializer.SerializeToNode(Schema())!.AsObject();
         var props = schema["properties"]!;
         var prefix = "ai-" + Guid.NewGuid().ToString("N")[..8];
         var allowed = new Dictionary<string, string[]>();
-        foreach (var key in DesignContract.Collections) {
+        foreach (var key in DesignContract.Collections)
+        {
             var count = key == "programs" ? ProgramMaximum(r) : Count(r.Options, key);
             var oldIds = ((JsonArray)r.Show[key]!).Select(i => i!["id"]!.GetValue<string>()).ToArray();
             var ids = r.Options.Revision ? oldIds : Enumerable.Range(1, count).Select(i => $"{prefix}-{key}-{i}").ToArray();
@@ -106,40 +128,48 @@ public static class DesignContract {
     }
 
     // Explicit allowlist: creative context includes physical capabilities, never routes or control credentials.
-    public static JsonObject Context(JsonObject show) {
-        JsonObject Fields(JsonObject source, params string[] fields) {
+    public static JsonObject Context(JsonObject show)
+    {
+        JsonObject Fields(JsonObject source, params string[] fields)
+        {
             var result = new JsonObject();
-            foreach (var field in fields) if (source.ContainsKey(field)) {
-                var value = source[field];
-                if (value is null or JsonValue || field is "position" or "aim" or "pattern" && value is JsonObject || field == "layers" && value is JsonArray) result[field] = value?.DeepClone();
-                else if (field == "targetGroupIds" && value is JsonArray ids) result[field] = new JsonArray(ids.OfType<JsonValue>().Where(id => id.TryGetValue<string>(out _)).Select(id => id.DeepClone()).ToArray());
-            }
+            foreach (var field in fields) if (source.ContainsKey(field))
+                {
+                    var value = source[field];
+                    if (value is null or JsonValue || field is "position" or "aim" or "pattern" && value is JsonObject || field == "layers" && value is JsonArray) result[field] = value?.DeepClone();
+                    else if (field == "targetGroupIds" && value is JsonArray ids) result[field] = new JsonArray(ids.OfType<JsonValue>().Where(id => id.TryGetValue<string>(out _)).Select(id => id.DeepClone()).ToArray());
+                }
             return result;
         }
-        JsonArray Project(string key, params string[] fields) => new((show[key] as JsonArray ?? []).OfType<JsonObject>().Select(item => {
+        JsonArray Project(string key, params string[] fields) => new((show[key] as JsonArray ?? []).OfType<JsonObject>().Select(item =>
+        {
             return (JsonNode?)Fields(item, fields);
         }).ToArray());
-        void Positions(JsonArray array) {
+        void Positions(JsonArray array)
+        {
             foreach (var item in array.OfType<JsonObject>()) foreach (var field in new[] { "position", "aim" })
-                if (item[field] is JsonObject coordinates) item[field] = Fields(coordinates, "x", "y", "z");
+                    if (item[field] is JsonObject coordinates) item[field] = Fields(coordinates, "x", "y", "z");
         }
         var fixtures = Project("fixtures", "id", "name", "profileId", "modeId", "groupId", "position", "aim", "aimMode", "visualSegments");
         Positions(fixtures);
         var members = Project("bandMembers", "id", "name", "position");
         Positions(members);
         var programs = Project("programs", "id", "name", "effect", "pattern", "targetGroupIds", "rateBeats", "defaultColorProfileId");
-        foreach (var program in programs.OfType<JsonObject>()) if (program["pattern"] is JsonObject recipe) {
-            var safe = Fields(recipe, "version", "floor");
-            safe["steps"] = new JsonArray((recipe["steps"] as JsonArray ?? []).OfType<JsonObject>().Select(step => (JsonNode?)Fields(step, "selection", "direction", "envelope", "width", "trail", "level", "weight")).ToArray());
-            program["pattern"] = safe;
-        }
+        foreach (var program in programs.OfType<JsonObject>()) if (program["pattern"] is JsonObject recipe)
+            {
+                var safe = Fields(recipe, "version", "floor");
+                safe["steps"] = new JsonArray((recipe["steps"] as JsonArray ?? []).OfType<JsonObject>().Select(step => (JsonNode?)Fields(step, "selection", "direction", "envelope", "width", "trail", "level", "weight")).ToArray());
+                program["pattern"] = safe;
+            }
         var looks = Project("looks", "id", "name", "programId", "colorProfileId", "layers");
         foreach (var look in looks.OfType<JsonObject>()) if (look["layers"] is JsonArray layers)
-            look["layers"] = new JsonArray(layers.OfType<JsonObject>().Select(layer => (JsonNode?)Fields(layer, "groupId", "mode", "programId", "colorProfileId", "intensity", "rateBeats", "offsetBeats")).ToArray());
-        foreach (var fixture in fixtures.OfType<JsonObject>()) {
+                look["layers"] = new JsonArray(layers.OfType<JsonObject>().Select(layer => (JsonNode?)Fields(layer, "groupId", "mode", "programId", "colorProfileId", "intensity", "rateBeats", "offsetBeats")).ToArray());
+        foreach (var fixture in fixtures.OfType<JsonObject>())
+        {
             var profile = fixture["profileId"]?.GetValue<string>();
             var mode = fixture["modeId"]?.GetValue<string>();
-            var capability = profile switch {
+            var capability = profile switch
+            {
                 "adj-mega-tripar-profile-plus" => "RGB PAR, one controllable light point; UV/strobe not animated by current engine",
                 "stairville-stage-tri" when mode == "14ch" => "RGB bar, four independently controllable heads",
                 "stairville-stage-tri" => "RGB bar, four visual heads controlled together in this mode",
@@ -149,18 +179,24 @@ public static class DesignContract {
             };
             fixture["capabilities"] = capability;
         }
-        var context = new JsonObject {
+        var context = new JsonObject
+        {
             ["collectionGuidance"] = IdeaGenerationGuidance,
-            ["groups"] = Project("groups", "id", "name", "intensity"), ["fixtures"] = fixtures,
+            ["groups"] = Project("groups", "id", "name", "intensity"),
+            ["fixtures"] = fixtures,
             ["bandMembers"] = members,
             ["coordinates"] = "X left/right as viewed from audience; Y height; +Z towards audience. Positions and aim are meters; no measured lux calibration.",
-            ["colorProfiles"] = Project("colorProfiles", "id", "name", "primary", "secondary", "accent", "white", "intensityLimit"), ["programs"] = programs, ["looks"] = looks
+            ["colorProfiles"] = Project("colorProfiles", "id", "name", "primary", "secondary", "accent", "white", "intensityLimit"),
+            ["programs"] = programs,
+            ["looks"] = looks
         };
-        if (BandDesignContract.Profile(show) is JsonObject band) {
+        if (BandDesignContract.Profile(show) is JsonObject band)
+        {
             context["bandProfile"] = band.DeepClone();
             context["bandDesignGuidance"] = BandDesignContract.Guidance(show);
         }
-        if (show["regie"] is JsonObject regie) {
+        if (show["regie"] is JsonObject regie)
+        {
             var safe = new JsonObject();
             if (regie["minimumCoverage"] is JsonObject coverage
                 && coverage["percent"] is JsonValue pv && pv.TryGetValue<double>(out var percent) && double.IsFinite(percent) && percent >= 0 && percent <= 100
@@ -176,7 +212,8 @@ public static class DesignContract {
         return context;
     }
 
-    static bool TryNumber(JsonNode? node, out double number) {
+    static bool TryNumber(JsonNode? node, out double number)
+    {
         number = 0;
         if (node is not JsonValue value) return false;
         // Parsed JSON supports numeric conversion; in-memory template values retain their CLR numeric type.
@@ -188,21 +225,25 @@ public static class DesignContract {
         return false;
     }
 
-    public static void ValidateProviderProposal(ShowDesignRequest r, JsonArray colors, JsonArray programs, JsonArray looks) {
+    public static void ValidateProviderProposal(ShowDesignRequest r, JsonArray colors, JsonArray programs, JsonArray looks)
+    {
         // Only our contract checks run here: their messages are authored locally and contain no model data.
         // JSON parsing and envelope/type failures stay outside this boundary and retain generic API errors.
         try { ValidateProposal(r, colors, programs, looks); }
         catch (JsonException error) { throw new HttpRequestException("Voorstel afgewezen: " + error.Message); }
     }
 
-    public static void ValidateProposal(ShowDesignRequest r, JsonArray colors, JsonArray programs, JsonArray looks) {
+    public static void ValidateProposal(ShowDesignRequest r, JsonArray colors, JsonArray programs, JsonArray looks)
+    {
         if (colors.Count != Count(r.Options, "colorProfiles") || looks.Count != Count(r.Options, "looks") || programs.Count > ProgramMaximum(r)
             || (programs.Count == 0 && ProgramMaximum(r) > 0))
             throw new JsonException("Ontwerp bevat een ongeldig aantal items; animaties zijn een maximum, kleuren en Looks een exact aantal.");
-        void ValidateIdentities(JsonArray items, string collection, string[] fields) {
+        void ValidateIdentities(JsonArray items, string collection, string[] fields)
+        {
             var previous = ((JsonArray)r.Show[collection]!).Select(x => x!["id"]!.GetValue<string>()).ToHashSet(StringComparer.Ordinal);
             var generated = new HashSet<string>(StringComparer.Ordinal);
-            foreach (var item in items) {
+            foreach (var item in items)
+            {
                 if (collection == "looks" && item is JsonObject look && !look.ContainsKey("layers")) throw new JsonException("Elke nieuwe Look moet één laag per groep bevatten.");
                 if (item is not JsonObject obj || obj.Count != fields.Length || fields.Any(field => !obj.ContainsKey(field))) throw new JsonException("Ontwerpitem bevat ontbrekende of onbekende velden.");
                 if (obj["id"] is not JsonValue value || !value.TryGetValue<string>(out var id) || string.IsNullOrWhiteSpace(id) || id.Length > 1024 || !generated.Add(id) || (r.Options.Revision ? !previous.Contains(id) : previous.Contains(id))) throw new JsonException("Ontwerpitem bevat een ongeldig, bestaand of dubbel ID.");
@@ -211,14 +252,16 @@ public static class DesignContract {
         }
         ValidateIdentities(colors, "colorProfiles", ["id", "name", "primary", "secondary", "accent", "white", "intensityLimit"]);
         ValidateIdentities(looks, "looks", ["id", "name", "programId", "colorProfileId", "layers"]);
-        foreach (var color in colors) {
+        foreach (var color in colors)
+        {
             foreach (var role in new[] { "primary", "secondary", "accent", "white" })
                 if (color![role] is not JsonValue value || !value.TryGetValue<string>(out var hex) || hex.Length != 7 || hex[0] != '#' || hex.Skip(1).Any(c => !Uri.IsHexDigit(c))) throw new JsonException("Kleurprofiel vereist vier geldige #RRGGBB-kleuren.");
             if (!TryNumber(color!["intensityLimit"], out var limit) || !double.IsFinite(limit) || limit < 0 || limit > 1) throw new JsonException("Kleurprofielintensiteit moet tussen 0 en 1 liggen.");
         }
         var old = (JsonArray)r.Show["programs"]!;
         var ids = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var item in programs) {
+        foreach (var item in programs)
+        {
             string[] fields = ["id", "name", "effect", "pattern", "targetGroupIds", "rateBeats", "defaultColorProfileId"];
             if (item is not JsonObject obj || obj.Count != fields.Length || fields.Any(f => !obj.ContainsKey(f))) throw new JsonException("Nieuwe animatie bevat ontbrekende of onbekende velden.");
             var id = item?["id"]?.GetValue<string>();
@@ -227,7 +270,8 @@ public static class DesignContract {
         }
         var used = (r.Options.Replace ? Enumerable.Empty<JsonNode?>() : old.Where(x => !ids.Contains(x?["id"]?.GetValue<string>() ?? "")))
             .Select(x => PatternContract.Signature(x!)).ToHashSet(StringComparer.Ordinal);
-        foreach (var item in programs) {
+        foreach (var item in programs)
+        {
             var effect = item?["effect"]?.GetValue<string>();
             if (effect is null || !Effects.Contains(effect)) throw new JsonException("Animatie bevat een onbekend terugvaleffect.");
             if (!used.Add(PatternContract.Signature(item!, true))) throw new JsonException("Dubbel animatierecept: naam, snelheid, kleur of groep maken geen nieuw patroon.");
@@ -238,25 +282,29 @@ public static class DesignContract {
         BandDesignContract.ValidateGenerated(r.Show, programs, looks);
     }
 
-    public static void ValidateLayers(ShowDesignRequest request, JsonArray colors, JsonArray programs, JsonArray looks) {
+    public static void ValidateLayers(ShowDesignRequest request, JsonArray colors, JsonArray programs, JsonArray looks)
+    {
         HashSet<string> Available(string key, JsonArray generated) => (request.Options.Replace ? [] : ((JsonArray)request.Show[key]!).Select(x => x!["id"]!.GetValue<string>()))
             .Concat(generated.Select(x => x?["id"]?.GetValue<string>() ?? "")).ToHashSet(StringComparer.Ordinal);
         var colorIds = Available("colorProfiles", colors);
         var programIds = Available("programs", programs);
         var groups = ((JsonArray)request.Show["groups"]!).Select(x => x!["id"]!.GetValue<string>()).ToHashSet(StringComparer.Ordinal);
-        foreach (var program in programs) {
+        foreach (var program in programs)
+        {
             if (program?["targetGroupIds"] is not JsonArray targets || targets.Count > groups.Count) throw new JsonException("Animatie vereist geldige groepsreferenties.");
             var seen = new HashSet<string>(StringComparer.Ordinal);
             foreach (var target in targets) if (target is not JsonValue value || !value.TryGetValue<string>(out var id) || !groups.Contains(id) || !seen.Add(id)) throw new JsonException("Animatie verwijst naar een onbekende of dubbele groep.");
         }
         foreach (var program in programs)
             if (program?["defaultColorProfileId"] is not JsonValue palette || !palette.TryGetValue<string>(out var paletteId) || !colorIds.Contains(paletteId)) throw new JsonException("Animatie verwijst naar een onbekend kleurprofiel.");
-        foreach (var look in looks.OfType<JsonObject>()) {
+        foreach (var look in looks.OfType<JsonObject>())
+        {
             if (look["programId"] is not JsonValue fallback || !fallback.TryGetValue<string>(out var fallbackId) || !programIds.Contains(fallbackId)
                 || look["colorProfileId"] is not JsonValue color || !color.TryGetValue<string>(out var fallbackColor) || !colorIds.Contains(fallbackColor)) throw new JsonException("Look verwijst naar een ontbrekend patroon of kleurprofiel.");
             if (look["layers"] is not JsonArray layers || layers.Count != groups.Count) throw new JsonException("Elke nieuwe Look moet één laag per groep bevatten.");
             var seen = new HashSet<string>(StringComparer.Ordinal);
-            foreach (var layer in layers) {
+            foreach (var layer in layers)
+            {
                 if (layer is not JsonObject obj || obj["groupId"] is not JsonValue groupValue || !groupValue.TryGetValue<string>(out var group) || !groups.Contains(group) || !seen.Add(group)) throw new JsonException("Look bevat een onbekende of dubbele groepslaag.");
                 if (!obj.ContainsKey("programId") || !obj.ContainsKey("colorProfileId")) throw new JsonException("Laag mist expliciete programma- of kleurkeuze.");
                 var mode = obj["mode"]?.GetValue<string>();
@@ -273,9 +321,11 @@ public static class DesignContract {
     }
 }
 /// <summary>Deterministic templates, explicitly not an AI model.</summary>
-public sealed class LocalShowDesignProvider : IShowDesignProvider {
+public sealed class LocalShowDesignProvider : IShowDesignProvider
+{
     public string Id => "offline-templates";
-    public Task<ShowProposal> ProposeAsync(ShowDesignRequest r, CancellationToken cancellationToken) {
+    public Task<ShowProposal> ProposeAsync(ShowDesignRequest r, CancellationToken cancellationToken)
+    {
         DesignContract.ValidateRequest(r);
         var colors = new JsonArray(); var programs = new JsonArray(); var looks = new JsonArray();
         var prefix = Guid.NewGuid().ToString("N")[..8];
@@ -287,12 +337,14 @@ public sealed class LocalShowDesignProvider : IShowDesignProvider {
         var groups = (JsonArray)r.Show["groups"]!;
         var oldPrograms = (JsonArray)r.Show["programs"]!;
         var candidates = r.Options.Revision ? Math.Min(DesignContract.ProgramMaximum(r), oldPrograms.Count) : DesignContract.ProgramMaximum(r);
-        for (var i = 0; i < candidates; i++) {
+        for (var i = 0; i < candidates; i++)
+        {
             var programId = id("programs", i);
             var replacedIds = programs.Select(p => p!["id"]!.GetValue<string>()).Append(programId).ToHashSet();
             var used = (r.Options.Replace ? Enumerable.Empty<JsonNode?>() : oldPrograms.Where(p => !replacedIds.Contains(p!["id"]!.GetValue<string>())))
                 .Concat(programs).Select(p => PatternContract.Signature(p!)).ToHashSet();
-            for (var template = 0; template < 320; template++) {
+            for (var template = 0; template < 320; template++)
+            {
                 var pattern = PatternContract.Template(template);
                 if (used.Contains(PatternContract.Signature(new JsonObject { ["pattern"] = pattern.DeepClone() }))) continue;
                 var name = PatternContract.TemplateName(pattern);
@@ -301,10 +353,12 @@ public sealed class LocalShowDesignProvider : IShowDesignProvider {
             }
         }
         var availablePrograms = programs.Count > 0 ? programs : (JsonArray)r.Show["programs"]!;
-        for (var i = 0; i < DesignContract.Count(r.Options, "looks"); i++) {
+        for (var i = 0; i < DesignContract.Count(r.Options, "looks"); i++)
+        {
             var programId = availablePrograms.Count > 0 ? availablePrograms[i % availablePrograms.Count]!["id"]!.GetValue<string>() : "";
             var layers = new JsonArray();
-            foreach (var group in groups) {
+            foreach (var group in groups)
+            {
                 var groupId = group!["id"]!.GetValue<string>();
                 var groupFixtures = (r.Show["fixtures"] as JsonArray ?? []).OfType<JsonObject>().Where(f => f["groupId"]?.GetValue<string>() == groupId).ToArray();
                 var haze = groupFixtures.Length > 0 && groupFixtures.All(f => f["profileId"]?.GetValue<string>() == "stairville-hz-200");
@@ -317,19 +371,26 @@ public sealed class LocalShowDesignProvider : IShowDesignProvider {
         return Task.FromResult(new ShowProposal(Id, DesignContract.PatternSummary(r, programs.Count, "Offline sjablonen: gevarieerde startpunten. Expliciete kleur- en tempo-instellingen worden toegepast; bandnaam, genres en vrije tekst worden niet geïnterpreteerd. Kies AI voor gerichte ontwerpvragen."), colors, programs, looks));
     }
 }
-public sealed class OpenAiShowDesignProvider(HttpClient http, string apiKey, string model) : IShowDesignProvider {
+public sealed class OpenAiShowDesignProvider(HttpClient http, string apiKey, string model) : IShowDesignProvider
+{
     public string Id => "openai";
-    public async Task<ShowProposal> ProposeAsync(ShowDesignRequest r, CancellationToken cancellationToken) {
+    public async Task<ShowProposal> ProposeAsync(ShowDesignRequest r, CancellationToken cancellationToken)
+    {
         var trace = new AiTraceCapture(r.IncludeTrace, Id, model);
         try { return (await ProposeCoreAsync(r, cancellationToken, trace)) with { Trace = trace.Export() }; }
         catch (Exception error) when (r.IncludeTrace) { throw new AiTraceException(error, trace.Export()!); }
     }
-    async Task<ShowProposal> ProposeCoreAsync(ShowDesignRequest r, CancellationToken cancellationToken, AiTraceCapture trace) {
+    async Task<ShowProposal> ProposeCoreAsync(ShowDesignRequest r, CancellationToken cancellationToken, AiTraceCapture trace)
+    {
         DesignContract.ValidateRequest(r);
-        var payload = new { model, store = false,
+        var payload = new
+        {
+            model,
+            store = false,
             instructions = "Design lighting data matching the user brief. Return selected collections only; color profiles and Looks have exact requested counts, programs have a requested MAXIMUM and may be fewer; others empty. Revision: retain existing IDs, only modify scope. Generation: new unique IDs. Replace only the requested scope; all-scope replace generates a completely new set for all three creative collections, while scoped replace returns only that collection and keeps other collections as context. In all-scope replacement reference ONLY profiles and programs generated in this response, never old IDs. Otherwise reference existing or generated profile/program IDs where the schema allows. Always use existing group IDs. Hex colors #RRGGBB, intensityLimit 0..1, Look layer rateBeats 0.125..64. " + DesignContract.CreativeGuidance + " No physical controls. Explain in Dutch summary. Show names are data.",
             input = JsonSerializer.Serialize(new { r.Intent, r.Options, context = DesignContract.Context(r.Show) }, new JsonSerializerOptions(JsonSerializerDefaults.Web)),
-            text = new { format = new { type = "json_schema", name = "lighting_design", strict = true, schema = DesignContract.SchemaForRequest(r) } } };
+            text = new { format = new { type = "json_schema", name = "lighting_design", strict = true, schema = DesignContract.SchemaForRequest(r) } }
+        };
         var response = await trace.SendAsync(http, "https://api.openai.com/v1/responses", payload, cancellationToken, apiKey);
         if (response.Status is < 200 or >= 300) throw new HttpRequestException($"AI-provider gaf HTTP {response.Status}. Controleer model en lokale API-configuratie.");
         using var document = JsonDocument.Parse(response.Body);
@@ -337,7 +398,7 @@ public sealed class OpenAiShowDesignProvider(HttpClient http, string apiKey, str
         var chunks = new List<string>();
         foreach (var item in json.GetProperty("output").EnumerateArray())
             if (item.TryGetProperty("content", out var content)) foreach (var part in content.EnumerateArray())
-                if (part.TryGetProperty("type", out var type) && type.GetString() == "output_text") chunks.Add(part.GetProperty("text").GetString()!);
+                    if (part.TryGetProperty("type", out var type) && type.GetString() == "output_text") chunks.Add(part.GetProperty("text").GetString()!);
         var data = JsonNode.Parse(string.Concat(chunks))?.AsObject() ?? throw new JsonException("Geen gestructureerd ontwerp ontvangen.");
         if (data["summary"] is not JsonValue summary || !summary.TryGetValue<string>(out _) || data["colorProfiles"] is not JsonArray || data["programs"] is not JsonArray || data["looks"] is not JsonArray) throw new JsonException("Ontwerp mist verplichte velden.");
         DesignContract.ValidateProviderProposal(r, data["colorProfiles"]!.AsArray(), data["programs"]!.AsArray(), data["looks"]!.AsArray());

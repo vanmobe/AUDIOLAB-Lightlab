@@ -4,18 +4,18 @@
 
 ## Belangrijkste bevindingen en wijzigingen
 
-| Bevinding | Uitgewerkt |
-| --- | --- |
-| Start was een welkomstpagina, geen praktisch showoverzicht | Dashboard met actuele aantallen, inventaris, drie werkroutes en openen/exporteren. Geen hardcoded inventarisgegevens. |
+| Bevinding                                                                   | Uitgewerkt                                                                                                                                                                                 |
+| --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Start was een welkomstpagina, geen praktisch showoverzicht                  | Dashboard met actuele aantallen, inventaris, drie werkroutes en openen/exporteren. Geen hardcoded inventarisgegevens.                                                                      |
 | Formulieren en knoppen gebruikten verschillende kleuren, gewichten en maten | Gedeelde charcoal/blauwe basistokens, lokale systeemtypografie, rustige hiërarchie, consistente velden, focusstaten en sliders. Podiumhandles behouden hun eigen geometrie en typekleuren. |
-| Navigatie en grote koppen versprongen tussen ontwerptabs | Compactere applicatiekop en stabiele bibliotheeknavigatie; overbodige tussenkop verwijderd. |
-| Showbeheer was alleen op bepaalde schermen bereikbaar | Menu Show op alle werkruimtes, met openen, exporteren, versie bewaren en expliciet startshow herstellen. Escape sluit het menu en herstelt focus. |
-| Startshow herstellen verving werk onmiddellijk | Bevestiging plus herstelversie vóór mutatie. Opslagfout of volle versiecollectie blokkeert herstel. Import vraagt expliciete bevestiging en adviseert eerst exporteren. |
-| Patchconcepten verdwenen bij vertrek naar een andere werkruimte | Centrale navigatie vraagt toestemming bij niet-opgeslagen patchvelden; annuleren bewaart het formulier. |
-| Live Looks bevatten lange omschrijvingen per knop | Compacte knoppen met twee kleurstalen; zoeken bij grotere bibliotheken; volledige opbouw van actieve Look achter uitklapper. |
-| Dubbele masters en uitgebreide uitleg drukten de livebediening weg | Masters en groepsdetails achter uitklappers; persistentie blijft expliciet zichtbaar. WING en gewone masters blijven dezelfde waarden bedienen. |
-| Blackout had geen zichtbare actieve toestand | Alle showmodi hebben `aria-pressed`, consistente Nederlandse labels en een duidelijke actieve blackout. |
-| AI- en WING-formulieren oogden als losse toepassingen | Gelijke tokens, kleinere koppen, consistente inputhoogten, uitgelijnde hints, rustige consolevlakken en mobiele stapeling. |
+| Navigatie en grote koppen versprongen tussen ontwerptabs                    | Compactere applicatiekop en stabiele bibliotheeknavigatie; overbodige tussenkop verwijderd.                                                                                                |
+| Showbeheer was alleen op bepaalde schermen bereikbaar                       | Menu Show op alle werkruimtes, met openen, exporteren, versie bewaren en expliciet startshow herstellen. Escape sluit het menu en herstelt focus.                                          |
+| Startshow herstellen verving werk onmiddellijk                              | Bevestiging plus herstelversie vóór mutatie. Opslagfout of volle versiecollectie blokkeert herstel. Import vraagt expliciete bevestiging en adviseert eerst exporteren.                    |
+| Patchconcepten verdwenen bij vertrek naar een andere werkruimte             | Centrale navigatie vraagt toestemming bij niet-opgeslagen patchvelden; annuleren bewaart het formulier.                                                                                    |
+| Live Looks bevatten lange omschrijvingen per knop                           | Compacte knoppen met twee kleurstalen; zoeken bij grotere bibliotheken; volledige opbouw van actieve Look achter uitklapper.                                                               |
+| Dubbele masters en uitgebreide uitleg drukten de livebediening weg          | Masters en groepsdetails achter uitklappers; persistentie blijft expliciet zichtbaar. WING en gewone masters blijven dezelfde waarden bedienen.                                            |
+| Blackout had geen zichtbare actieve toestand                                | Alle showmodi hebben `aria-pressed`, consistente Nederlandse labels en een duidelijke actieve blackout.                                                                                    |
+| AI- en WING-formulieren oogden als losse toepassingen                       | Gelijke tokens, kleinere koppen, consistente inputhoogten, uitgelijnde hints, rustige consolevlakken en mobiele stapeling.                                                                 |
 
 Het vectorbeeldmerk in de kop verwijst naar een waaier lichtstralen. Het is een klein, lokaal UI-element; het eerder gegenereerde rasterlogoconcept wordt niet als achtergrond of groot beeld gebruikt.
 

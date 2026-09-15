@@ -10,17 +10,17 @@ The sticky Live transport shows the explicit runtime destination, connected Look
 
 Connect the existing Live controls and simulator to the autonomous memory playback session. An explicit source choice preserves offline browser simulation. Runtime mode renders received frames, never a second browser clock. Snapshot geometry/control assignments remain immutable; live changes are session-only. No physical output endpoints are called.
 
-| Track | Coverage |
-| --- | --- |
-| Implementation | Required: atomic preview/snapshot API, shared live-state validation, bounded client/lifecycle, existing control reuse. |
-| Architecture / maintainability / code quality | Required: runtime authority; reuse creative/group logic, no duplicate engine; independent boundary review. |
-| UX / user perspective / visual design | Required: source choice, explicit start/reconnect/stop, honest session-only labels, responsive controls, no silent fallback. |
-| Security / API / compatibility | Required: bounded full-snapshot access under existing loopback policy, strict refs, session/revision fences; additive endpoints preserve old clients. |
-| Performance / observability / data lifecycle | Required: one loaded snapshot and latest frame, sequential bounded polling, no frame history, no raw errors, cleanup on stop/fault. |
-| Risk / testing / validation | Required: stale response/control conflicts, disconnect, no local-show mutation, real process/browser tests, multi-universe parity. |
-| Documentation / release | Required: API and operational distinction; web/worker/runtime update together. Windows/Linux/hardware not assumed tested. |
-| Dependencies / Git | Light: no new dependencies or commits/branches requested; preserve unrelated work. |
-| Database / compliance | N/a: no persistent schema or regulated-data workflow introduced. |
+| Track                                         | Coverage                                                                                                                                              |
+| --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Implementation                                | Required: atomic preview/snapshot API, shared live-state validation, bounded client/lifecycle, existing control reuse.                                |
+| Architecture / maintainability / code quality | Required: runtime authority; reuse creative/group logic, no duplicate engine; independent boundary review.                                            |
+| UX / user perspective / visual design         | Required: source choice, explicit start/reconnect/stop, honest session-only labels, responsive controls, no silent fallback.                          |
+| Security / API / compatibility                | Required: bounded full-snapshot access under existing loopback policy, strict refs, session/revision fences; additive endpoints preserve old clients. |
+| Performance / observability / data lifecycle  | Required: one loaded snapshot and latest frame, sequential bounded polling, no frame history, no raw errors, cleanup on stop/fault.                   |
+| Risk / testing / validation                   | Required: stale response/control conflicts, disconnect, no local-show mutation, real process/browser tests, multi-universe parity.                    |
+| Documentation / release                       | Required: API and operational distinction; web/worker/runtime update together. Windows/Linux/hardware not assumed tested.                             |
+| Dependencies / Git                            | Light: no new dependencies or commits/branches requested; preserve unrelated work.                                                                    |
+| Database / compliance                         | N/a: no persistent schema or regulated-data workflow introduced.                                                                                      |
 
 The complete product remains open: physical transport, audio/Dante, WING/MIDI and remaining review goals are not replaced by this slice.
 
@@ -70,10 +70,10 @@ Initial revision is0, overrides/links are empty, lock isnull and group masters c
   "command": "live",
   "expectedRevision": 5,
   "controls": {
-    "overrides": {"wash": {"intensity": 0.7, "rateBeats": 8, "offsetBeats": -2}},
+    "overrides": { "wash": { "intensity": 0.7, "rateBeats": 8, "offsetBeats": -2 } },
     "links": [["wash", "back"]]
   },
-  "groupIntensities": {"front": 0.8, "wash": 0.6, "back": 0.6, "haze": 0.2},
+  "groupIntensities": { "front": 0.8, "wash": 0.6, "back": 0.6, "haze": 0.2 },
   "colorLockId": null
 }
 ```
@@ -111,6 +111,7 @@ Runtime sliders keep a local draft while dragging and apply on release (or keybo
 Accepted: shared creative/live validation, atomic state/frame publication, rendered-revision compare-and-swap, bounded sequential polling, no stale/local fallback, nullable .NET segment compatibility, no-store and explicit immutable-snapshot labels. The independent architecture/security review found no remaining blocker. Its continuous-drag concern was resolved with commit-on-gesture controls and actual pointer validation.
 
 Rejected: continuously resubmitting the whole editor show, optimistic local frame evaluation and unbounded slider-command queues would weaken runtime ownership or recovery. Deferred: hardware transport, audio/MIDI/WING adapters and the remaining full-product goals. No dependency additions, commits, branches or hardware activation were performed; unrelated user changes remain intact.
+
 ## Editorshow laden of bestaande sessie verbinden
 
 Live biedt **Laad editorshow in runtime**, ook als al een sessie actief is. De naam en aantallen tonen de huidige editorinhoud; laden gebruikt die volledige show, niet de eerder geladen runtimeversie. **Verbind met bestaande sessie** behoudt juist de huidige runtime-inhoud en tijdelijke bediening. Dezelfde laadactie is beschikbaar in Runtime.

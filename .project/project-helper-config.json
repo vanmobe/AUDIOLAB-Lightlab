@@ -27,6 +27,7 @@
   "paths": {
     "project_context": ".project/PROJECT_CONTEXT.md",
     "project_root_readme": ".project/README.md",
+    "dotnet_solution": "Lightlab.slnx",
     "architecture_context": "docs/REVIEW_2026-09-14.md",
     "technical_design": "docs/technical-design/AI_Lighting_Show_Designer_Technical_Design_v1.1.docx"
   }

@@ -16,7 +16,9 @@ it('starts with grouped overview, honest output status and no open editing forms
 })
 
 it('identifies both conflicting rows without blocking the overview', () => {
-  const fixtures = initialShow.fixtures.slice(0, 2).map(fixture => ({ ...fixture, patch: { universe: 1, address: 1 } }))
+  const fixtures = initialShow.fixtures
+    .slice(0, 2)
+    .map((fixture) => ({ ...fixture, patch: { universe: 1, address: 1 } }))
   const html = renderToStaticMarkup(<PatchWorkspace show={{ ...initialShow, fixtures }} onChange={() => {}} />)
   expect(html).toContain('Overlap met ADJ TriPar 1')
   expect(html).toContain('Overlap met ADJ TriPar 2')

@@ -5,7 +5,8 @@ import { initialShow } from './seed'
 
 describe('WING sync side panel', () => {
   it('starts read-only with configurable address, explicit bank selection and no implicit traffic', () => {
-    const fetcher = vi.fn(); vi.stubGlobal('fetch', fetcher)
+    const fetcher = vi.fn()
+    vi.stubGlobal('fetch', fetcher)
     try {
       const html = renderToStaticMarkup(<WingBankSync show={initialShow} initialBank={3} />)
       expect(html).toContain('Synchroniseren met WING')
@@ -18,7 +19,9 @@ describe('WING sync side panel', () => {
       expect(html).toContain('<dialog')
       expect(html).not.toContain('<dialog open')
       expect(fetcher).not.toHaveBeenCalled()
-    } finally { vi.unstubAllGlobals() }
+    } finally {
+      vi.unstubAllGlobals()
+    }
   })
   it('explicitly discloses Compact unsupported without offering bank selection', () => {
     const show = { ...initialShow, controlSurface: { ...initialShow.controlSurface, profileId: 'wing-compact' } }

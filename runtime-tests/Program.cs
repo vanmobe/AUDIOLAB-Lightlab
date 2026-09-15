@@ -52,7 +52,8 @@ foreach (var invalid in new[] {
     replacementRequest.Options with { Revision = true },
     replacementRequest.Options with { ProfileCount = 0 },
     replacementRequest.Options with { ProgramCount = 33 }
-}) {
+})
+{
     try { DesignContract.ValidateRequest(replacementRequest with { Options = invalid }); throw new Exception("Invalid replacement accepted"); }
     catch (ArgumentException) { }
 }
@@ -94,7 +95,8 @@ var selected = await ollama.ProposeAsync(ollamaRequest with { Model = "llama3.2:
 Check(selected.Model == "llama3.2:3b" && JsonNode.Parse(ollamaHandler.Body!)!["model"]!.GetValue<string>() == selected.Model && ollama.Model == "gpt-oss:20b", "Selection captured per request without changing default");
 var concurrent = await Task.WhenAll(ollama.ProposeAsync(ollamaRequest with { Model = "llama3.2:3b" }, default), ollama.ProposeAsync(ollamaRequest, default));
 Check(concurrent[0].Model == "llama3.2:3b" && concurrent[1].Model == "gpt-oss:20b", "Requests retain separate model provenance");
-foreach (var invalidModel in new[] { "absent:7b", "gpt-oss:120b-cloud", "", new string('x', 201) }) {
+foreach (var invalidModel in new[] { "absent:7b", "gpt-oss:120b-cloud", "", new string('x', 201) })
+{
     var before = ollamaHandler.ChatCalls;
     try { await ollama.ProposeAsync(ollamaRequest with { Model = invalidModel }, default); throw new Exception("Invalid model accepted"); } catch (ArgumentException) { }
     Check(ollamaHandler.ChatCalls == before, "Invalid selection never reaches generation");
@@ -137,7 +139,8 @@ var layerFields = layerSchema["items"]!["properties"]!;
 Check(Allowed(layerFields["groupId"]!).SequenceEqual(new[] { "wash", "front", "haze" }), "Schema layer references only actual groups");
 Check(layerFields["programId"]!["enum"]!.AsArray().Any(x => x is null) && !layerFields["programId"]!["enum"]!.AsArray().Any(x => x?.GetValue<string>() == "existing"), "Replacement layer program enums allow null/new IDs, not stale IDs");
 Check(layerFields["colorProfileId"]!["enum"]!.AsArray().Any(x => x is null), "Layer palette inheritance nullable in strict schema");
-void RejectLayer(Action<JsonArray> mutate) {
+void RejectLayer(Action<JsonArray> mutate)
+{
     var altered = layered.Looks.DeepClone().AsArray(); mutate(altered);
     try { DesignContract.ValidateLayers(layeredRequest, layered.ColorProfiles, layered.Programs, altered); throw new Exception("Malformed layers accepted"); }
     catch (System.Text.Json.JsonException) { }
@@ -180,11 +183,12 @@ var oldTiming = layered.Looks.DeepClone().AsArray();
 foreach (var layer in oldTiming[0]!["layers"]!.AsArray()) { layer!.AsObject().Remove("rateBeats"); layer.AsObject().Remove("offsetBeats"); }
 try { DesignContract.ValidateLayers(layeredRequest, layered.ColorProfiles, layered.Programs, oldTiming); throw new Exception("New generation omitted timing"); } catch (System.Text.Json.JsonException) { }
 RejectLayer(l => l[0]!["layers"]![0]!["rateBeats"] = null);
-foreach (var duration in new[] { 0.125, 64.0 }) foreach (var offset in new[] { -64.0, 0.0, 64.0 }) {
-    var timed = layered.Looks.DeepClone().AsArray();
-    timed[0]!["layers"]![0]!["rateBeats"] = duration; timed[0]!["layers"]![0]!["offsetBeats"] = offset;
-    DesignContract.ValidateLayers(layeredRequest, layered.ColorProfiles, layered.Programs, timed);
-}
+foreach (var duration in new[] { 0.125, 64.0 }) foreach (var offset in new[] { -64.0, 0.0, 64.0 })
+    {
+        var timed = layered.Looks.DeepClone().AsArray();
+        timed[0]!["layers"]![0]!["rateBeats"] = duration; timed[0]!["layers"]![0]!["offsetBeats"] = offset;
+        DesignContract.ValidateLayers(layeredRequest, layered.ColorProfiles, layered.Programs, timed);
+    }
 foreach (var invalidRate in new[] { 0.0, 0.124, 64.001, double.NaN, double.PositiveInfinity }) RejectLayer(l => l[0]!["layers"]![0]!["rateBeats"] = invalidRate);
 foreach (var invalidOffset in new[] { -64.001, 64.001, double.NaN, double.NegativeInfinity }) RejectLayer(l => l[0]!["layers"]![0]!["offsetBeats"] = invalidOffset);
 RejectLayer(l => l[0]!["layers"]![0]!["rateBeats"] = "8");
@@ -216,7 +220,8 @@ var partialPatterns = show.DeepClone().AsObject(); partialPatterns["programs"] =
 var partialRequest = exhaustedRequest with { Show = partialPatterns };
 var partial = await new LocalShowDesignProvider().ProposeAsync(partialRequest, default);
 Check(partial.Programs.Count == 30 && partial.Programs.All(p => !partialPatterns["programs"]!.AsArray().Any(old => PatternContract.Signature(old!) == PatternContract.Signature(p!))), "Additions produce new recipes up to remaining capacity");
-void RejectPatterns(ShowDesignRequest r, JsonArray patterns) {
+void RejectPatterns(ShowDesignRequest r, JsonArray patterns)
+{
     try { DesignContract.ValidateProposal(r, new JsonArray(), patterns, new JsonArray()); throw new Exception("Invalid generated pattern accepted"); } catch (System.Text.Json.JsonException) { }
 }
 RejectPatterns(partialRequest, new JsonArray());
@@ -235,7 +240,8 @@ Check(PatternContract.Signature(sourceRecipe) == PatternContract.Signature(equiv
 var alternateRecipe = sourceRecipe.DeepClone(); alternateRecipe["pattern"]!["steps"]![0]!["selection"] = "alternate";
 var alternateOther = alternateRecipe.DeepClone(); alternateOther["pattern"]!["steps"]![0]!["width"] = 8; alternateOther["pattern"]!["steps"]![0]!["direction"] = "inward"; alternateOther["pattern"]!["steps"]![0]!["trail"] = 1;
 Check(PatternContract.Signature(alternateRecipe) == PatternContract.Signature(alternateOther), "Alternate has no direction, width or trail semantics");
-foreach (var constant in new[] { 0.0, 0.4, 1.0 }) {
+foreach (var constant in new[] { 0.0, 0.4, 1.0 })
+{
     var masked = sourceRecipe.DeepClone(); masked["pattern"]!["floor"] = constant;
     foreach (var step in masked["pattern"]!["steps"]!.AsArray()) { step!["selection"] = "moving"; step["envelope"] = "pulse"; step["level"] = constant; }
     var steady = sourceRecipe.DeepClone(); steady["pattern"]!["floor"] = 0.0;
@@ -244,7 +250,8 @@ foreach (var constant in new[] { 0.0, 0.4, 1.0 }) {
     steady["pattern"]!["steps"]![0]!["level"] = constant == 1 ? 0.5 : 1;
     Check(PatternContract.Signature(masked) != PatternContract.Signature(steady), "Unequal step levels still produce distinct recipes");
 }
-void RejectRecipe(Action<JsonObject> mutate) {
+void RejectRecipe(Action<JsonObject> mutate)
+{
     var program = partial.Programs[0]!.DeepClone().AsObject(); mutate(program);
     RejectPatterns(partialRequest, new JsonArray(program));
 }
@@ -279,9 +286,16 @@ var noNew = await new OllamaShowDesignProvider(new HttpClient(emptyHandler), "gp
 Check(noNew.Programs.Count == 0 && noNew.Summary.Contains("0 unieke patronen"), "Ollama accepts zero additions only when collection is full");
 Console.WriteLine("Recipe checks passed: 32 unique templates, closed bounded DSL, metadata-independent canonical identity, GCD weights, existing/revision duplicate rejection, legacy context and same-effect variants.");
 // Band preferences affect constrained new design only; old shows and existing timings remain valid.
-JsonObject Band(string genres, string character, string color, string energy, string complexity, string motion) => new() {
-    ["name"] = "Onze band", ["genres"] = genres, ["character"] = character, ["colorMood"] = color,
-    ["energy"] = energy, ["complexity"] = complexity, ["motion"] = motion, ["preferredColors"] = new JsonArray()
+JsonObject Band(string genres, string character, string color, string energy, string complexity, string motion) => new()
+{
+    ["name"] = "Onze band",
+    ["genres"] = genres,
+    ["character"] = character,
+    ["colorMood"] = color,
+    ["energy"] = energy,
+    ["complexity"] = complexity,
+    ["motion"] = motion,
+    ["preferredColors"] = new JsonArray()
 };
 var calmBandShow = layeredShow.DeepClone().AsObject();
 calmBandShow["bandProfile"] = Band("Akoestische folk", "Intiem, warm, verhalen vertellen", "warm", "calm", "simple", "slow");
@@ -298,7 +312,8 @@ var calmSchema = DesignContract.SchemaForRequest(calmRequest)["properties"]!;
 var boldSchema = DesignContract.SchemaForRequest(boldRequest)["properties"]!;
 Check(calmSchema["programs"]!["items"]!["properties"]!["pattern"]!["properties"]!["steps"]!["maxItems"]!.GetValue<int>() == 2 && boldSchema["programs"]!["items"]!["properties"]!["pattern"]!["properties"]!["steps"]!["maxItems"]!.GetValue<int>() == 8, "Band complexity caps new recipe step counts");
 Check(calmSchema["looks"]!["items"]!["properties"]!["layers"]!["items"]!["properties"]!["rateBeats"]!["minimum"]!.GetValue<double>() == 8 && boldSchema["looks"]!["items"]!["properties"]!["layers"]!["items"]!["properties"]!["rateBeats"]!["minimum"]!.GetValue<double>() == 0.25, "Structured schemas carry contrasting motion ranges");
-void RejectBand(Action<JsonObject> mutate) {
+void RejectBand(Action<JsonObject> mutate)
+{
     var changed = calmBandShow.DeepClone().AsObject(); mutate(changed);
     try { DesignContract.ValidateRequest(calmRequest with { Show = changed }); throw new Exception("Invalid band profile accepted"); } catch (ArgumentException) { }
 }
@@ -315,7 +330,8 @@ RejectBand(s => s["bandProfile"]!["preferredColors"] = new JsonArray("red"));
 var emptyBandShow = show.DeepClone().AsObject(); emptyBandShow["bandProfile"] = Band("", "", "auto", "auto", "auto", "auto"); emptyBandShow["bandProfile"]!["name"] = "";
 DesignContract.ValidateRequest(request with { Show = emptyBandShow });
 Check(BandDesignContract.MaximumSteps(emptyBandShow) == 16 && BandDesignContract.Motion(emptyBandShow).Min == 0.125, "Empty/auto profile keeps unrestricted legacy bounds");
-void RejectBandOutput(JsonArray programs, JsonArray looks) {
+void RejectBandOutput(JsonArray programs, JsonArray looks)
+{
     try { DesignContract.ValidateProposal(calmRequest, calmProposal.ColorProfiles, programs, looks); throw new Exception("Band output limits ignored"); } catch (System.Text.Json.JsonException) { }
 }
 var tooComplex = calmProposal.Programs.DeepClone().AsArray();
@@ -333,7 +349,8 @@ Check(preferred.ColorProfiles[0]!["primary"]!.GetValue<string>() == "#112233" &&
 var patternsOnly = calmRequest with { Options = new DesignOptions("programs", 0, 1, 0, false) };
 var patternsOnlyResult = await new LocalShowDesignProvider().ProposeAsync(patternsOnly, default);
 Check(patternsOnlyResult.Looks.Count == 0 && patternsOnlyResult.Summary.Contains("timing blijven ongewijzigd") && patternsOnlyResult.Summary.Contains("kleurprofielen blijven ongewijzigd"), "Scoped generation honestly states untouched timing and colors");
-foreach (var pair in new[] { (calmRequest, calmProposal), (boldRequest, boldProposal) }) {
+foreach (var pair in new[] { (calmRequest, calmProposal), (boldRequest, boldProposal) })
+{
     var payload = new JsonObject { ["summary"] = "Passend ontwerp", ["colorProfiles"] = pair.Item2.ColorProfiles.DeepClone(), ["programs"] = pair.Item2.Programs.DeepClone(), ["looks"] = pair.Item2.Looks.DeepClone() };
     var bandHandler = new FakeHandler { Response = new JsonObject { ["done"] = true, ["message"] = new JsonObject { ["content"] = payload.ToJsonString() } }.ToJsonString() };
     await new OllamaShowDesignProvider(new HttpClient(bandHandler), "gpt-oss:20b").ProposeAsync(pair.Item1, default);
@@ -356,9 +373,20 @@ catch (System.Text.Json.JsonException) { }
 Console.WriteLine("Diagnostic checks passed: safe authored contract reason, no raw-value exposure, parser errors remain generic API path.");
 
 // Exercise the real transport/validation seam: local models can repeat a recipe despite a valid JSON schema.
-string OllamaEnvelope(JsonArray programs) => new JsonObject { ["done"] = true, ["message"] = new JsonObject { ["content"] = new JsonObject {
-    ["summary"] = "Hersteld", ["colorProfiles"] = new JsonArray(), ["programs"] = programs.DeepClone(), ["looks"] = new JsonArray()
-}.ToJsonString() } }.ToJsonString();
+string OllamaEnvelope(JsonArray programs) => new JsonObject
+{
+    ["done"] = true,
+    ["message"] = new JsonObject
+    {
+        ["content"] = new JsonObject
+        {
+            ["summary"] = "Hersteld",
+            ["colorProfiles"] = new JsonArray(),
+            ["programs"] = programs.DeepClone(),
+            ["looks"] = new JsonArray()
+        }.ToJsonString()
+    }
+}.ToJsonString();
 var recoveryHandler = new FakeHandler { Response = OllamaEnvelope(sameFallback) };
 recoveryHandler.Responses.Enqueue(OllamaEnvelope(onePattern));
 var recoveryProvider = new OllamaShowDesignProvider(new HttpClient(recoveryHandler), "gpt-oss:20b");
@@ -394,9 +422,20 @@ revisionRepairHandler.Responses.Enqueue(OllamaEnvelope(conflictingRevision));
 var repairedRevision = await new OllamaShowDesignProvider(new HttpClient(revisionRepairHandler), "gpt-oss:20b").ProposeAsync(revisionRequest, default);
 Check(repairedRevision.Programs.Count == 1 && repairedRevision.Programs[0]!["id"]!.GetValue<string>() == revised.Programs[0]!["id"]!.GetValue<string>()
     && revisionRequest.Show.ToJsonString() == revisionBeforeRepair, "Revision repair preserves the retained ID and never mutates existing stored programs");
-string FullEnvelope(ShowProposal proposal) => new JsonObject { ["done"] = true, ["message"] = new JsonObject { ["content"] = new JsonObject {
-    ["summary"] = proposal.Summary, ["colorProfiles"] = proposal.ColorProfiles.DeepClone(), ["programs"] = proposal.Programs.DeepClone(), ["looks"] = proposal.Looks.DeepClone()
-}.ToJsonString() } }.ToJsonString();
+string FullEnvelope(ShowProposal proposal) => new JsonObject
+{
+    ["done"] = true,
+    ["message"] = new JsonObject
+    {
+        ["content"] = new JsonObject
+        {
+            ["summary"] = proposal.Summary,
+            ["colorProfiles"] = proposal.ColorProfiles.DeepClone(),
+            ["programs"] = proposal.Programs.DeepClone(),
+            ["looks"] = proposal.Looks.DeepClone()
+        }.ToJsonString()
+    }
+}.ToJsonString();
 var replacementDuplicates = replacement.Programs.DeepClone().AsArray(); replacementDuplicates[1]!["pattern"] = replacementDuplicates[0]!["pattern"]!.DeepClone();
 var replacementRepairHandler = new FakeHandler { Response = FullEnvelope(replacement) };
 replacementRepairHandler.Responses.Enqueue(FullEnvelope(replacement with { Programs = replacementDuplicates }));
@@ -420,7 +459,8 @@ var capture = new AiTraceCapture(true, "test", "test");
 await capture.SendAsync(new HttpClient(captureHandler), "http://localhost/test", new { message = "SECRET_KEY_123456" }, default, "SECRET_KEY_123456");
 Check(capture.Export()!.Attempts[0] is { Redacted: true, ResponseTruncated: true } && !capture.Export()!.Attempts[0].RequestBody.Contains("SECRET_KEY") && !capture.Export()!.Attempts[0].ResponseBody!.Contains("SECRET_KEY"), "Secret echo is redacted before retention clipping, no credential header captured");
 var hugeCapture = new AiTraceCapture(true, "test", null);
-foreach (var escaped in new[] { @"\u0053ECRET_KEY_123456", @"\\u0053ECRET_KEY_123456", @"\u0053\u0045\u0043\u0052\u0045\u0054_KEY_123456" }) {
+foreach (var escaped in new[] { @"\u0053ECRET_KEY_123456", @"\\u0053ECRET_KEY_123456", @"\u0053\u0045\u0043\u0052\u0045\u0054_KEY_123456" })
+{
     var escapedCapture = new AiTraceCapture(true, "test", null);
     await escapedCapture.SendAsync(new HttpClient(new FakeHandler { Response = escaped }), "http://localhost/test", new { text = "safe" }, default, "SECRET_KEY_123456");
     Check(escapedCapture.Export()!.Attempts[0].Redacted && escapedCapture.Export()!.Attempts[0].ResponseBody!.Contains("body withheld"), "Unicode and nested escaped credential echoes are withheld");
@@ -453,13 +493,15 @@ try { await runningGeneration; throw new Exception("Cancel ignored"); } catch (O
 blockingHandler.WaitBeforeResponse = null;
 await limitedProvider.ProposeAsync(ollamaRequest, default);
 Check(blockingHandler.ChatCalls == 2, "Cancellation releases local generation admission");
-foreach (var mutation in new Action<JsonArray>[] { c => c[0]!["primary"] = "red", c => c[0]!["intensityLimit"] = 1.1, c => c[0]!["id"] = "existing", c => c[0]!["name"] = "", c => c[0]!["extra"] = "unknown" }) {
+foreach (var mutation in new Action<JsonArray>[] { c => c[0]!["primary"] = "red", c => c[0]!["intensityLimit"] = 1.1, c => c[0]!["id"] = "existing", c => c[0]!["name"] = "", c => c[0]!["extra"] = "unknown" })
+{
     var changed = ollamaResult.ColorProfiles.DeepClone().AsArray(); mutation(changed);
     try { DesignContract.ValidateProposal(ollamaRequest, changed, [], []); throw new Exception("Invalid palette accepted"); } catch (System.Text.Json.JsonException) { }
 }
 Console.WriteLine("AI capacity checks passed: timeout defaults/bounds, single-flight cancellation/release, scoped budgets, no duplicated schema, strict palette identity and values.");
 
-string StreamEnvelope(string envelope, string thinking = "") {
+string StreamEnvelope(string envelope, string thinking = "")
+{
     var parsed = JsonNode.Parse(envelope)!;
     var content = parsed["message"]!["content"]!.GetValue<string>();
     return System.Text.Json.JsonSerializer.Serialize(new { done = false, message = new { thinking, content = "" } }) + "\n"
@@ -486,7 +528,8 @@ try { await cancelStreamProvider.ProposeStreamingAsync(ollamaRequest, (update, t
 await cancelStreamProvider.ProposeStreamingAsync(ollamaRequest, Report, default);
 Console.WriteLine("Streaming provider checks passed: opt-in native transport, ordered phases, exact NDJSON trace, corrective retry, length rejection and cancellation releases admission.");
 
-sealed class FakeHandler : HttpMessageHandler {
+sealed class FakeHandler : HttpMessageHandler
+{
     public Func<CancellationToken, Task>? WaitBeforeResponse;
     public const string Installed = "{\"models\":[{\"name\":\"llama3.2:3b\"},{\"name\":\"gpt-oss:20b\"},{\"name\":\"gpt-oss:20b\"},{\"name\":\"gpt-oss:120b-cloud\"}]}";
     public string TagsResponse = Installed;
@@ -498,7 +541,8 @@ sealed class FakeHandler : HttpMessageHandler {
     public Action? AfterChat;
     public Queue<string> Responses = new();
     public string Response = """{"output":[{"type":"reasoning"},{"type":"message","content":[{"type":"output_text","text":"{\"summary\":\"Test\",\"colorProfiles\":[],\"programs\":[],\"looks\":[]}"}]}]}""";
-    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) {
+    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    {
         if (request.RequestUri!.AbsolutePath == "/api/tags") return new HttpResponseMessage(TagsStatus) { Content = new StringContent(TagsResponse, Encoding.UTF8, "application/json") };
         ChatCalls++;
         Body = await request.Content!.ReadAsStringAsync(cancellationToken);

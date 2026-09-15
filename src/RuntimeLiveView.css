@@ -1,28 +1,150 @@
-.runtime-live { min-width: 0; }
-.runtime-editor-load { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 18px; margin-bottom: 18px; padding: 18px 22px; border: 1px solid #35414e; border-radius: 12px; background: #192129; }
-.runtime-editor-load > div { min-width: 0; overflow-wrap: anywhere; }
-.runtime-editor-load p { margin: 6px 0 0; color: #afbdcb; font-size: 13px; }
-.runtime-editor-load small { flex-basis: 100%; color: #afbdcb; line-height: 1.5; }
-.runtime-live-session { padding: 18px 22px; margin-bottom: 18px; border: 1px solid #35414e; border-radius: 10px; background: #192129; }
-.runtime-live-toolbar { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; }
-.runtime-live-toolbar label { max-width: 170px; }
-.runtime-live-toolbar input { width: 100%; }
-.runtime-live-session small { color: #afbdcb; }
-.runtime-live-warning { border-left: 3px solid #d3ad6c; padding-left: 12px; }
-.runtime-live-controls { margin: 0; padding: 0; min-width: 0; }
-.runtime-live-controls[aria-busy="true"] { opacity: .86; }
-.runtime-live-change-controls { margin: 0; padding: 0; border: 0; min-width: 0; }
-.runtime-live-session > summary, .runtime-live-connections > summary, .runtime-view-settings > summary { cursor: pointer; padding: 6px 0; font-weight: 650; }
-.runtime-live-connections { margin-top: 20px; padding: 14px 18px; border: 1px solid #35414e; border-radius: 12px; background: #192129; }
-.runtime-live-connections[open] > summary { margin-bottom: 14px; }
-.runtime-controller-switch { display: flex; gap: 6px; margin-bottom: 14px; padding: 4px; border-radius: 10px; background: #101a22; }
-.runtime-controller-switch button { flex: 1; }
-.runtime-controller-switch button[aria-pressed="true"] { background: #285654; border-color: #84c9c1; }
-.runtime-live .control-panel .live-surface { min-width: 0; }
-.runtime-controller-view[hidden] { display: none !important; }
-.runtime-live-warning { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
-.runtime-live-unavailable { min-height: 280px; display: grid; place-content: center; text-align: center; border: 1px dashed #435568; border-radius: 12px; padding: 24px; }
-.live-source-switch { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 18px; }
-.live-source-switch span { color: #afbdcb; margin-right: 8px; }
-.live-source-switch button[aria-pressed="true"] { background: #284a76; border-color: #7daeff; color: #fff; }
-@media (max-width: 650px) { .runtime-live-session { padding: 14px; } .runtime-live-toolbar label { max-width: none; width: 100%; } .runtime-live-toolbar button { flex: 1 1 130px; } }
+.runtime-live {
+  min-width: 0;
+}
+.runtime-editor-load {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 18px;
+  margin-bottom: 18px;
+  padding: 18px 22px;
+  border: 1px solid #35414e;
+  border-radius: 12px;
+  background: #192129;
+}
+.runtime-editor-load > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.runtime-editor-load p {
+  margin: 6px 0 0;
+  color: #afbdcb;
+  font-size: 13px;
+}
+.runtime-editor-load small {
+  flex-basis: 100%;
+  color: #afbdcb;
+  line-height: 1.5;
+}
+.runtime-live-session {
+  padding: 18px 22px;
+  margin-bottom: 18px;
+  border: 1px solid #35414e;
+  border-radius: 10px;
+  background: #192129;
+}
+.runtime-live-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 10px;
+}
+.runtime-live-toolbar label {
+  max-width: 170px;
+}
+.runtime-live-toolbar input {
+  width: 100%;
+}
+.runtime-live-session small {
+  color: #afbdcb;
+}
+.runtime-live-warning {
+  border-left: 3px solid #d3ad6c;
+  padding-left: 12px;
+}
+.runtime-live-controls {
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+.runtime-live-controls[aria-busy='true'] {
+  opacity: 0.86;
+}
+.runtime-live-change-controls {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.runtime-live-session > summary,
+.runtime-live-connections > summary,
+.runtime-view-settings > summary {
+  cursor: pointer;
+  padding: 6px 0;
+  font-weight: 650;
+}
+.runtime-live-connections {
+  margin-top: 20px;
+  padding: 14px 18px;
+  border: 1px solid #35414e;
+  border-radius: 12px;
+  background: #192129;
+}
+.runtime-live-connections[open] > summary {
+  margin-bottom: 14px;
+}
+.runtime-controller-switch {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+  padding: 4px;
+  border-radius: 10px;
+  background: #101a22;
+}
+.runtime-controller-switch button {
+  flex: 1;
+}
+.runtime-controller-switch button[aria-pressed='true'] {
+  background: #285654;
+  border-color: #84c9c1;
+}
+.runtime-live .control-panel .live-surface {
+  min-width: 0;
+}
+.runtime-controller-view[hidden] {
+  display: none !important;
+}
+.runtime-live-warning {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.runtime-live-unavailable {
+  min-height: 280px;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  border: 1px dashed #435568;
+  border-radius: 12px;
+  padding: 24px;
+}
+.live-source-switch {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 18px;
+}
+.live-source-switch span {
+  color: #afbdcb;
+  margin-right: 8px;
+}
+.live-source-switch button[aria-pressed='true'] {
+  background: #284a76;
+  border-color: #7daeff;
+  color: #fff;
+}
+@media (max-width: 650px) {
+  .runtime-live-session {
+    padding: 14px;
+  }
+  .runtime-live-toolbar label {
+    max-width: none;
+    width: 100%;
+  }
+  .runtime-live-toolbar button {
+    flex: 1 1 130px;
+  }
+}

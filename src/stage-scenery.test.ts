@@ -7,13 +7,13 @@ describe('stage scenery', () => {
     const floor = createStageScenery().getObjectByName('stage-floor')!
     const bounds = new THREE.Box3().setFromObject(floor)
     expect(bounds.max.y).toBeCloseTo(0)
-    expect(bounds.min.y).toBeCloseTo(-.3)
+    expect(bounds.min.y).toBeCloseTo(-0.3)
     expect(bounds.getSize(new THREE.Vector3()).x).toBeCloseTo(14)
     expect(bounds.getSize(new THREE.Vector3()).z).toBeCloseTo(10)
     expect(floor.receiveShadow).toBe(true)
     const material = (floor as THREE.Mesh).material as THREE.MeshStandardMaterial
-    expect(material.roughness).toBe(.6)
-    expect(material.color.r).toBeGreaterThan(.2)
+    expect(material.roughness).toBe(0.6)
+    expect(material.color.r).toBeGreaterThan(0.2)
   })
 
   it('places pleated light-receiving curtains behind and outside the usable stage', () => {
@@ -23,7 +23,7 @@ describe('stage scenery', () => {
     expect(bounds.min.y).toBeCloseTo(0)
     expect(bounds.max.y).toBeCloseTo(5)
     expect(bounds.max.z).toBeLessThan(-5)
-    expect(bounds.max.z - bounds.min.z).toBeGreaterThan(.2)
+    expect(bounds.max.z - bounds.min.z).toBeGreaterThan(0.2)
     for (const side of ['left', 'right']) {
       const wing = stage.getObjectByName(`stage-wing-${side}`)!
       const wingBounds = new THREE.Box3().setFromObject(wing)
@@ -39,7 +39,7 @@ describe('stage scenery', () => {
     expect(new THREE.Box3().setFromObject(truss).getSize(new THREE.Vector3()).x).toBeCloseTo(12.028, 2)
     const geometries = new Set<THREE.BufferGeometry>()
     let meshes = 0
-    stage.traverse(object => {
+    stage.traverse((object) => {
       expect(object).not.toBeInstanceOf(THREE.Light)
       if (!(object instanceof THREE.Mesh)) return
       meshes++

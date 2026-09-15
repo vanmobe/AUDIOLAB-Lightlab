@@ -1,0 +1,9 @@
+node_modules/
+dist/
+output/
+.playwright-cli/
+runtime-worker/dist/
+**/bin/
+**/obj/
+docs/technical-design/
+public/fonts/

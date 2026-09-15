@@ -4,17 +4,20 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Lightflow.Runtime;
 
-static class AiStreamingChecks {
+static class AiStreamingChecks
+{
     static void Check(bool condition, string name) { if (!condition) throw new Exception(name); }
     static string Chunk(string content = "", string thinking = "", bool done = false, string reason = "stop") => JsonSerializer.Serialize(new { message = new { content, thinking }, done, done_reason = done ? reason : null }) + "\n";
-    public static async Task Run() {
+    public static async Task Run()
+    {
         var raw = Chunk(thinking: "Kleuren overwegen 🌈") + Chunk("{\"summary\":\"één 🌈\"}") + Chunk(done: true);
         var deltas = new List<(string?, string?)>(); string? captured = null; bool truncated = true;
         using var response = new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(new TinyReads(Encoding.UTF8.GetBytes(raw))) };
         var assembled = await OllamaStreamReader.ReadAsync(response, default, (body, cut) => { captured = body; truncated = cut; }, (thought, output) => { deltas.Add((thought, output)); return Task.CompletedTask; });
         Check(captured == raw && !truncated, "Stream trace is byte-equivalent decoded NDJSON, not assembled envelope");
         Check(JsonNode.Parse(assembled)!["message"]!["content"]!.GetValue<string>() == "{\"summary\":\"één 🌈\"}" && deltas[0].Item1 == "Kleuren overwegen 🌈", "Split UTF8 and thinking/content survive transport");
-        foreach (var invalid in new[] { Chunk("{}"), "not-json\n", Chunk(done: true) + Chunk("{}"), "{\"done\":1}\n", "{\"error\":\"private model internals\"}\n" }) {
+        foreach (var invalid in new[] { Chunk("{}"), "not-json\n", Chunk(done: true) + Chunk("{}"), "{\"done\":1}\n", "{\"error\":\"private model internals\"}\n" })
+        {
             using var bad = new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(invalid) };
             try { await OllamaStreamReader.ReadAsync(bad, default, null, (_, _) => Task.CompletedTask); throw new Exception("Invalid stream accepted"); }
             catch (Exception e) when (e is JsonException or AiStreamException or InvalidOperationException) { Check(!e.Message.Contains("private model internals"), "Raw provider error is not exposed as authored error"); }
@@ -29,7 +32,8 @@ static class AiStreamingChecks {
         foreach (var excessive in new[] {
             string.Concat(Enumerable.Repeat(Chunk(content: new string('x', 100_000)), 22)),
             string.Concat(Enumerable.Repeat(Chunk(thinking: new string('x', 100_000)), 169))
-        }) {
+        })
+        {
             using var excessiveResponse = new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(excessive) };
             try { await OllamaStreamReader.ReadAsync(excessiveResponse, default, null, (_, _) => Task.CompletedTask); throw new Exception("Stream total limit bypassed"); } catch (AiBodyLimitException) { }
         }
@@ -49,7 +53,8 @@ static class AiStreamingChecks {
         Check(updates.Count == updateCount + 1 && updates.Last() is { Clipped: true, Thinking: null, Content: null, Phase: "thinking", Attempt: 2 }, "Incoming model activity stays visible after preview clipping without retaining more text");
         Console.WriteLine("AI streaming checks passed: UTF8 chunks, exact raw trace, malformed/truncated streams, line/cancellation bounds and shared preview clipping.");
     }
-    sealed class TinyReads(byte[] bytes) : MemoryStream(bytes) {
+    sealed class TinyReads(byte[] bytes) : MemoryStream(bytes)
+    {
         public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken token = default) => base.ReadAsync(buffer[..Math.Min(buffer.Length, 3)], token);
     }
 }

@@ -5,21 +5,24 @@ using System.Text.Json.Nodes;
 namespace Lightflow.Runtime;
 
 public record CopilotStatus(bool Available, bool Authenticated);
-public interface ICopilotTransport {
+public interface ICopilotTransport
+{
     Task<CopilotStatus> StatusAsync(CancellationToken token);
     Task<string[]> ListModelsAsync(CancellationToken token);
     Task<string> GenerateAsync(string model, string system, string prompt, Func<string, CancellationToken, Task> delta, CancellationToken token);
 }
 
 /// <summary>Explicit cloud provider. Only declarative proposals pass the existing shared validator.</summary>
-public sealed class CopilotShowDesignProvider(ICopilotTransport transport) : IShowDesignProvider, IStreamingShowDesignProvider {
+public sealed class CopilotShowDesignProvider(ICopilotTransport transport) : IShowDesignProvider, IStreamingShowDesignProvider
+{
     readonly SemaphoreSlim generation = new(1, 1);
     public string Id => "copilot";
     public Task<CopilotStatus> StatusAsync(CancellationToken token) => transport.StatusAsync(token);
     public Task<string[]> ListModelsAsync(CancellationToken token) => transport.ListModelsAsync(token);
     public Task<ShowProposal> ProposeAsync(ShowDesignRequest request, CancellationToken token) => Generate(request, null, token);
     public Task<ShowProposal> ProposeStreamingAsync(ShowDesignRequest request, Func<AiProgress, CancellationToken, Task> report, CancellationToken token) => Generate(request, new AiProgressReporter(report), token);
-    async Task<ShowProposal> Generate(ShowDesignRequest request, AiProgressReporter? progress, CancellationToken token) {
+    async Task<ShowProposal> Generate(ShowDesignRequest request, AiProgressReporter? progress, CancellationToken token)
+    {
         DesignContract.ValidateRequest(request);
         if (!await generation.WaitAsync(0, token)) throw new AiBusyException("GitHub Copilot maakt al een ontwerp. Wacht of annuleer die aanvraag eerst.");
         var attempts = new List<AiTraceAttempt>();
@@ -27,7 +30,8 @@ public sealed class CopilotShowDesignProvider(ICopilotTransport transport) : ISh
         static string Clip(string text) => text[..Math.Min(text.Length, 128 * 1024)];
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(token);
         deadline.CancelAfter(TimeSpan.FromMinutes(request.OllamaTimeoutMinutes));
-        try {
+        try
+        {
             if (progress is not null) await progress.PhaseAsync("waiting", 1, deadline.Token);
             var model = request.Model;
             if (string.IsNullOrWhiteSpace(model) || model.Length > 200 || model.Any(char.IsControl)) throw new ArgumentException("Kies een beschikbaar GitHub Copilot-model.");
@@ -47,14 +51,18 @@ public sealed class CopilotShowDesignProvider(ICopilotTransport transport) : ISh
             foreach (var key in DesignContract.Collections) if (data[key] is not JsonArray) throw new JsonException();
             DesignContract.ValidateProviderProposal(request, data["colorProfiles"]!.AsArray(), data["programs"]!.AsArray(), data["looks"]!.AsArray());
             return new(Id, DesignContract.PatternSummary(request, data["programs"]!.AsArray().Count, explanation), data["colorProfiles"]!.AsArray(), data["programs"]!.AsArray(), data["looks"]!.AsArray(), model, Trace());
-        } catch (Exception error) {
+        }
+        catch (Exception error)
+        {
             var safe = error is OperationCanceledException && !token.IsCancellationRequested ? new HttpRequestException("De GitHub Copilot-aanvraag heeft de tijdslimiet bereikt. Er is geen voorstel toegepast.") : error;
             if (request.IncludeTrace) throw new AiTraceException(safe, Trace()!);
             if (!ReferenceEquals(safe, error)) throw safe;
             throw;
-        } finally { generation.Release(); }
+        }
+        finally { generation.Release(); }
     }
-    static string JsonContent(string content) {
+    static string JsonContent(string content)
+    {
         var text = content.Trim();
         if (!text.StartsWith("```", StringComparison.Ordinal)) return text;
         var firstLine = text.IndexOf('\n');

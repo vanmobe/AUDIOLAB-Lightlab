@@ -6,10 +6,10 @@ Research date: 2026-09-14. These are manual-based encoding proposals, **not phys
 
 [Official ADJ support page](https://www.adj.com/collections/mega-tripar-profile-plus-parts) links to [ADJ user manual](https://assets.centryngroup.com/dl/files/MEGATRIPARPROFILEPLUSUSERMANUAL.pdf), document 1.3 dated 2026-07-23. Printed page 17, visually checked.
 
-| Mode | Channel map | Proposed neutral encoding |
-| --- | --- | --- |
-| 4ch | 1 red, 2 green, 3 blue, 4 UV | Scale RGB by intensity; UV zero. No separate master channel. |
-| 6ch | 1 red, 2 green, 3 blue, 4 UV, 5 shutter/strobe, 6 master | RGB chroma, UV zero, shutter 32, intensity on master. |
+| Mode | Channel map                                              | Proposed neutral encoding                                    |
+| ---- | -------------------------------------------------------- | ------------------------------------------------------------ |
+| 4ch  | 1 red, 2 green, 3 blue, 4 UV                             | Scale RGB by intensity; UV zero. No separate master channel. |
+| 6ch  | 1 red, 2 green, 3 blue, 4 UV, 5 shutter/strobe, 6 master | RGB chroma, UV zero, shutter 32, intensity on master.        |
 
 Shutter 0–31 closes the light; 32–63 is steady illumination. Therefore a generic zero-valued “strobe disabled” channel would incorrectly black out this personality. Blackout can zero all channels. No macro channel exists in these two modes. Confidence: high for mapping; device/firmware equivalence untested. Current 4ch `dimmer` capability describes software intensity, not a dedicated DMX master. Source has an apparent typo in its last shutter interval; use the unambiguous 32–63 interval, not that row.
 
@@ -17,9 +17,9 @@ Shutter 0–31 closes the light; 32–63 is steady illumination. Therefore a gen
 
 [Thomann manual](https://images.thomann.de/pics/atg/atgdata/document/manual/c_238663_v7_en_online.pdf), ID 238663, V7 dated 2022-07-18. Printed pages 40, 44–45; 14-channel table visually checked.
 
-| Mode | Channel map | Proposed neutral encoding |
-| --- | --- | --- |
-| 3ch / d.-P1 | 1 red, 2 green, 3 blue, shared by all heads | Scale RGB by aggregate intensity. |
+| Mode         | Channel map                                                                            | Proposed neutral encoding                                            |
+| ------------ | -------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| 3ch / d.-P1  | 1 red, 2 green, 3 blue, shared by all heads                                            | Scale RGB by aggregate intensity.                                    |
 | 14ch / d.-P4 | 1–3 head 1 RGB; 4–6 head 2 RGB; 7–9 head 3 RGB; 10–12 head 4 RGB; 13 strobe; 14 master | Scale each head's RGB by its own intensity; master 255; strobe zero. |
 
 Avoid multiplying the per-head values by their mean intensity again. Blackout zeros everything. Neither selected mode has a macro selector. The table describes strobe as increasing speed across 0–255 without detailed subranges; zero is the proposed non-strobing minimum and must be checked physically. Confidence: high for channel assignments, unverified for hardware behavior and physical head ordering.

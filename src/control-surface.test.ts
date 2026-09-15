@@ -1,5 +1,15 @@
 import { describe, expect, it } from 'vitest'
-import { assignControlBinding, bindingAtSlot, canAssignBinding, clearControlSlot, getControlSurfaceProfile, isControlSlot, moveControlBinding, renameControlBank, slotKey } from './control-surface'
+import {
+  assignControlBinding,
+  bindingAtSlot,
+  canAssignBinding,
+  clearControlSlot,
+  getControlSurfaceProfile,
+  isControlSlot,
+  moveControlBinding,
+  renameControlBank,
+  slotKey,
+} from './control-surface'
 import { initialShow } from './seed'
 import type { ControlBinding, ControlSlot } from './domain'
 import { assertShowDocument } from './show-validation'
@@ -7,16 +17,28 @@ import { assertShowDocument } from './show-validation'
 const button = (index = 1, bank = 1): ControlSlot => ({ bank, kind: 'button', index })
 const rotary = (index = 1, bank = 1): ControlSlot => ({ bank, kind: 'rotary', index })
 const look: ControlBinding = { id: 'new-look-control', label: 'Warm', action: 'look', targetId: 'warm-static' }
-const master: ControlBinding = { id: 'new-master-control', label: 'Washniveau', action: 'group-intensity', targetId: 'wash' }
+const master: ControlBinding = {
+  id: 'new-master-control',
+  label: 'Washniveau',
+  action: 'group-intensity',
+  targetId: 'wash',
+}
 
 describe('vendor-neutral control surface capacity', () => {
   it('exposes Rack/full CC banks and Compact USER buttons without invented encoders', () => {
-    for (const id of ['wing-rack', 'wing-full']) expect(getControlSurfaceProfile(id)).toMatchObject({ banks: 16, buttons: 8, rotaries: 4, buttonColumns: 4 })
-    expect(getControlSurfaceProfile('wing-compact')).toMatchObject({ banks: 1, buttons: 16, rotaries: 0, buttonColumns: 4 })
+    for (const id of ['wing-rack', 'wing-full'])
+      expect(getControlSurfaceProfile(id)).toMatchObject({ banks: 16, buttons: 8, rotaries: 4, buttonColumns: 4 })
+    expect(getControlSurfaceProfile('wing-compact')).toMatchObject({
+      banks: 1,
+      buttons: 16,
+      rotaries: 0,
+      buttonColumns: 4,
+    })
     expect(getControlSurfaceProfile('future-desk')).toBeUndefined()
   })
   it('accepts only compatible actions within the active profile capacity', () => {
-    const rack = getControlSurfaceProfile('wing-rack')!, compact = getControlSurfaceProfile('wing-compact')!
+    const rack = getControlSurfaceProfile('wing-rack')!,
+      compact = getControlSurfaceProfile('wing-compact')!
     expect(canAssignBinding(look, button(8, 16), rack)).toBe(true)
     expect(canAssignBinding(master, rotary(4, 16), rack)).toBe(true)
     expect(canAssignBinding(look, button(9), rack)).toBe(false)
@@ -27,9 +49,21 @@ describe('vendor-neutral control surface capacity', () => {
     expect(canAssignBinding(master, rotary(), compact)).toBe(false)
     expect(canAssignBinding(look, button(16), compact)).toBe(true)
     expect(canAssignBinding(look, button(1, 2), compact)).toBe(false)
-    for (const action of ['tap-tempo', 'follow'] as const) expect(canAssignBinding({ ...look, action }, button(), rack)).toBe(false)
+    for (const action of ['tap-tempo', 'follow'] as const)
+      expect(canAssignBinding({ ...look, action }, button(), rack)).toBe(false)
   })
-  it.each([null, {}, { ...button(), bank: 0 }, { ...button(), bank: 65 }, { ...button(), bank: 1.5 }, { ...button(), index: 65 }, { ...button(), index: NaN }, { ...button(), index: '1' }, { ...button(), kind: 'fader' }, { ...button(), cc: 16 }])('rejects malformed slots %j', slot => {
+  it.each([
+    null,
+    {},
+    { ...button(), bank: 0 },
+    { ...button(), bank: 65 },
+    { ...button(), bank: 1.5 },
+    { ...button(), index: 65 },
+    { ...button(), index: NaN },
+    { ...button(), index: '1' },
+    { ...button(), kind: 'fader' },
+    { ...button(), cc: 16 },
+  ])('rejects malformed slots %j', (slot) => {
     expect(isControlSlot(slot)).toBe(false)
   })
   it('retains a wider bounded stored slot format for future and unsupported profiles', () => {
@@ -71,14 +105,14 @@ describe('immutable logical assignment', () => {
   it('preserves a displaced action as unassigned when assigning a new or unassigned action', () => {
     const first = assignControlBinding(initialShow, look, button())
     const next = assignControlBinding(first, { ...look, id: 'replacement' }, button())
-    expect(next.controlSurface.bindings.find(binding => binding.id === look.id)?.slot).toBeUndefined()
+    expect(next.controlSurface.bindings.find((binding) => binding.id === look.id)?.slot).toBeUndefined()
     expect(bindingAtSlot(next.controlSurface, button())?.id).toBe('replacement')
     expect(next.controlSurface.bindings).toHaveLength(first.controlSurface.bindings.length + 1)
   })
   it('clears only placement, retaining identity and target for recovery', () => {
     const first = assignControlBinding(initialShow, master, rotary())
     const cleared = clearControlSlot(first, rotary())
-    expect(cleared.controlSurface.bindings.find(binding => binding.id === master.id)).toEqual(master)
+    expect(cleared.controlSurface.bindings.find((binding) => binding.id === master.id)).toEqual(master)
     expect(clearControlSlot(cleared, rotary())).toBe(cleared)
     expect(bindingAtSlot(first.controlSurface, rotary())?.id).toBe(master.id)
   })
@@ -106,22 +140,48 @@ describe('immutable logical assignment', () => {
     expect(() => moveControlBinding(compact, look.id, button())).toThrow('niet wisselen')
   })
   it('bounds new bindings while allowing existing controls to move at capacity', () => {
-    const full = { ...initialShow, controlSurface: { ...initialShow.controlSurface, bindings: Array.from({ length: 512 }, (_, index) => ({ ...look, id: `control-${index}` })) } }
+    const full = {
+      ...initialShow,
+      controlSurface: {
+        ...initialShow.controlSurface,
+        bindings: Array.from({ length: 512 }, (_, index) => ({ ...look, id: `control-${index}` })),
+      },
+    }
     expect(() => assignControlBinding(full, look, button())).toThrow('Maximum 512')
     expect(moveControlBinding(full, 'control-0', button()).controlSurface.bindings).toHaveLength(512)
   })
   it('rejects missing targets, stale actions, unsupported controls and unknown profile assignments', () => {
-    for (const binding of [{ ...look, targetId: 'missing' }, { ...master, targetId: 'missing' }, { ...look, action: 'mode' as const, targetId: 'bad-mode' }, { ...look, action: 'color-lock' as const, targetId: 'missing' }, { ...look, action: 'tap-tempo' as const }, { ...look, label: '' }]) {
-      expect(() => assignControlBinding(initialShow, binding, binding.action === 'group-intensity' ? rotary() : button())).toThrow()
+    for (const binding of [
+      { ...look, targetId: 'missing' },
+      { ...master, targetId: 'missing' },
+      { ...look, action: 'mode' as const, targetId: 'bad-mode' },
+      { ...look, action: 'color-lock' as const, targetId: 'missing' },
+      { ...look, action: 'tap-tempo' as const },
+      { ...look, label: '' },
+    ]) {
+      expect(() =>
+        assignControlBinding(initialShow, binding, binding.action === 'group-intensity' ? rotary() : button()),
+      ).toThrow()
     }
     expect(() => moveControlBinding(initialShow, 'deleted', button())).toThrow('bestaat niet')
-    expect(() => assignControlBinding({ ...initialShow, controlSurface: { ...initialShow.controlSurface, profileId: 'future-desk' } }, look, button())).toThrow('ondersteunde indeling')
+    expect(() =>
+      assignControlBinding(
+        { ...initialShow, controlSurface: { ...initialShow.controlSurface, profileId: 'future-desk' } },
+        look,
+        button(),
+      ),
+    ).toThrow('ondersteunde indeling')
   })
   it('renames banks without changing assigned controls, and empty names restore the default', () => {
     const named = renameControlBank(initialShow, 16, '  Refrein  ')
     expect(named.controlSurface.bankNames).toEqual({ '16': 'Refrein' })
     expect(named.controlSurface.bindings).toBe(initialShow.controlSurface.bindings)
     expect(renameControlBank(named, 16, '').controlSurface.bankNames).toEqual({})
-    for (const [bank, name] of [[0, 'Test'], [65, 'Test'], [1, 'x'.repeat(81)]] as const) expect(() => renameControlBank(named, bank, name)).toThrow()
+    for (const [bank, name] of [
+      [0, 'Test'],
+      [65, 'Test'],
+      [1, 'x'.repeat(81)],
+    ] as const)
+      expect(() => renameControlBank(named, bank, name)).toThrow()
   })
 })

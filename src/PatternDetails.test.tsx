@@ -3,11 +3,24 @@ import { describe, expect, it } from 'vitest'
 import { PatternDetails } from './PatternDetails'
 import { type Pattern, type PatternStep } from './pattern-language'
 
-const step = (changes: Partial<PatternStep> = {}): PatternStep => ({ selection: 'moving', direction: 'bounce', envelope: 'hold', width: 2, trail: .5, level: 1, weight: 1, ...changes })
+const step = (changes: Partial<PatternStep> = {}): PatternStep => ({
+  selection: 'moving',
+  direction: 'bounce',
+  envelope: 'hold',
+  width: 2,
+  trail: 0.5,
+  level: 1,
+  weight: 1,
+  ...changes,
+})
 
 describe('visible recipe explanation', () => {
   it('explains real step content, baseline and relative shares rather than model prose', () => {
-    const pattern: Pattern = { version: 1, floor: .35, steps: [step(), step({ selection: 'random', envelope: 'fade-out', width: 3, weight: 3 })] }
+    const pattern: Pattern = {
+      version: 1,
+      floor: 0.35,
+      steps: [step(), step({ selection: 'random', envelope: 'fade-out', width: 3, weight: 3 })],
+    }
     const html = renderToStaticMarkup(<PatternDetails pattern={pattern} />)
     expect(html).toContain('2 stappen')
     expect(html).toContain('basisniveau 35%')
@@ -21,7 +34,9 @@ describe('visible recipe explanation', () => {
     expect(html.match(/<li>/g)).toHaveLength(2)
   })
   it('renders a single step as the full group cycle without animation-owned beats', () => {
-    const html = renderToStaticMarkup(<PatternDetails pattern={{ version: 1, floor: 0, steps: [step({ weight: 8, level: .7 })] }} />)
+    const html = renderToStaticMarkup(
+      <PatternDetails pattern={{ version: 1, floor: 0, steps: [step({ weight: 8, level: 0.7 })] }} />,
+    )
     expect(html).toContain('1 stap')
     expect(html).toContain('100% van de groepscyclus')
     expect(html).toContain('op 70%')

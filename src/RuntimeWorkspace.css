@@ -1,15 +1,74 @@
-.runtime-workspace { display: grid; gap: 20px; max-width: 1200px; margin: 0 auto; }
-.runtime-page-heading, .runtime-card-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
-.runtime-page-heading h2 { margin: 4px 0; font-size: 30px; }
-.runtime-page-heading p { margin: 6px 0; }
-.runtime-card { min-width: 0; padding: 24px; border: 1px solid var(--lab-line, #35465e); background: var(--lab-panel, #192129); border-radius: 16px; }
-.runtime-card h2 { font-size: 19px; margin: 0 0 12px; }
-.runtime-card-heading strong { color: var(--lab-mint, #a6f2d8); font-size: 14px; }
-.runtime-card p { line-height: 1.6; overflow-wrap: anywhere; }
-.runtime-card small { display: block; margin-top: 12px; line-height: 1.5; color: var(--lab-muted, #b1bbcf); }
-.runtime-link-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
-.runtime-link-grid button { margin: 4px 8px 4px 0; }
-.runtime-log-details { margin-top: 20px; border-top: 1px solid var(--lab-line, #35465e); padding-top: 16px; }
-.runtime-build-info { margin-top: 16px !important; }
-.runtime-live-presentation[hidden], .runtime-live-audio[hidden] { display: none !important; }
-@media (max-width: 720px) { .runtime-link-grid { grid-template-columns: 1fr; } .runtime-card { padding: 16px; } }
+.runtime-workspace {
+  display: grid;
+  gap: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.runtime-page-heading,
+.runtime-card-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.runtime-page-heading h2 {
+  margin: 4px 0;
+  font-size: 30px;
+}
+.runtime-page-heading p {
+  margin: 6px 0;
+}
+.runtime-card {
+  min-width: 0;
+  padding: 24px;
+  border: 1px solid var(--lab-line, #35465e);
+  background: var(--lab-panel, #192129);
+  border-radius: 16px;
+}
+.runtime-card h2 {
+  font-size: 19px;
+  margin: 0 0 12px;
+}
+.runtime-card-heading strong {
+  color: var(--lab-mint, #a6f2d8);
+  font-size: 14px;
+}
+.runtime-card p {
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.runtime-card small {
+  display: block;
+  margin-top: 12px;
+  line-height: 1.5;
+  color: var(--lab-muted, #b1bbcf);
+}
+.runtime-link-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+.runtime-link-grid button {
+  margin: 4px 8px 4px 0;
+}
+.runtime-log-details {
+  margin-top: 20px;
+  border-top: 1px solid var(--lab-line, #35465e);
+  padding-top: 16px;
+}
+.runtime-build-info {
+  margin-top: 16px !important;
+}
+.runtime-live-presentation[hidden],
+.runtime-live-audio[hidden] {
+  display: none !important;
+}
+@media (max-width: 720px) {
+  .runtime-link-grid {
+    grid-template-columns: 1fr;
+  }
+  .runtime-card {
+    padding: 16px;
+  }
+}

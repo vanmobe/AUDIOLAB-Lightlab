@@ -2,13 +2,18 @@ import { describe, expect, it } from 'vitest'
 import type { FixtureDeployment } from './domain'
 import { aimFixtures, aimPresets, matchesAimPreset, moveFixtures, setFixtureHeight } from './stage-operations'
 
-const fixtures: FixtureDeployment[] = [0, 1, 2].map(i => ({
-  id: String(i), name: 'Spot ' + i, profileId: 'test', modeId: 'test', groupId: 'wash',
-  position: [i * 2, 3, 0], aim: [0, 0, 0],
+const fixtures: FixtureDeployment[] = [0, 1, 2].map((i) => ({
+  id: String(i),
+  name: 'Spot ' + i,
+  profileId: 'test',
+  modeId: 'test',
+  groupId: 'wash',
+  position: [i * 2, 3, 0],
+  aim: [0, 0, 0],
 }))
 describe('stage batch edits', () => {
   it('offers a backward-downward preset that survives batch movement and height changes', () => {
-    const preset = aimPresets.find(item => item.direction[1] === -1 && item.direction[2] === -1)
+    const preset = aimPresets.find((item) => item.direction[1] === -1 && item.direction[2] === -1)
     expect(preset).toBeDefined()
     const aimed = aimFixtures(fixtures, ['0', '2'], preset!)
     const moved = setFixtureHeight(moveFixtures(aimed, ['0', '2'], 1, 1), ['0', '2'], 4.5)
@@ -19,8 +24,8 @@ describe('stage batch edits', () => {
     }
     expect(moved[1]).toBe(fixtures[1])
   })
-  it.each(aimPresets)('aims a batch in parallel for $label without moving fixtures', preset => {
-    const varied = fixtures.map((f, i) => ({ ...f, position: [i * 2, i + .25, -i] as [number, number, number] }))
+  it.each(aimPresets)('aims a batch in parallel for $label without moving fixtures', (preset) => {
+    const varied = fixtures.map((f, i) => ({ ...f, position: [i * 2, i + 0.25, -i] as [number, number, number] }))
     const result = aimFixtures(varied, ['0', '2'], preset)
     for (const i of [0, 2]) {
       expect(matchesAimPreset(result[i], preset)).toBe(true)
@@ -44,7 +49,7 @@ describe('stage batch edits', () => {
     const moved = moveFixtures(aimed, ['0', '1'], 1, -2)
     const raised = setFixtureHeight(moved, ['0', '1'], 4.5)
     const restored: FixtureDeployment[] = JSON.parse(JSON.stringify(raised))
-    expect(restored.slice(0, 2).every(f => matchesAimPreset(f, aimPresets[1]))).toBe(true)
+    expect(restored.slice(0, 2).every((f) => matchesAimPreset(f, aimPresets[1]))).toBe(true)
     expect(raised[2]).toBe(fixtures[2])
     const targetMode = moveFixtures(fixtures, ['0'], 1, 1)
     expect(targetMode[0].aim).toEqual(fixtures[0].aim)
@@ -63,9 +68,9 @@ describe('stage batch edits', () => {
     expect(moved[0].position[2]).toBe(-4.7)
   })
   it('sets a shared height without changing position or aim for other lamps', () => {
-    const floor = setFixtureHeight(fixtures, ['0', '2'], .25)
-    expect(floor[0].position).toEqual([0, .25, 0])
-    expect(floor[2].position).toEqual([4, .25, 0])
+    const floor = setFixtureHeight(fixtures, ['0', '2'], 0.25)
+    expect(floor[0].position).toEqual([0, 0.25, 0])
+    expect(floor[2].position).toEqual([4, 0.25, 0])
     expect(floor[1]).toBe(fixtures[1])
     expect(floor[0].aim).toEqual(fixtures[0].aim)
   })

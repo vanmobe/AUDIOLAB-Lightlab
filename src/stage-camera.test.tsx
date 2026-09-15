@@ -14,7 +14,13 @@ describe('stage camera viewpoint', () => {
   })
   it('shows the audience camera at the edge pointing toward the stage', () => {
     const marker = stageCameraMarker(stageCameraPresets[0].camera)
-    expect(marker).toMatchObject({ position: { x: 70, y: 88 }, tip: { x: 70, y: 70 }, outside: true, clamped: true, label: 'Zaal' })
+    expect(marker).toMatchObject({
+      position: { x: 70, y: 88 },
+      tip: { x: 70, y: 70 },
+      outside: true,
+      clamped: true,
+      label: 'Zaal',
+    })
   })
   it('uses the complete camera configuration to identify a preset', () => {
     for (const preset of stageCameraPresets) expect(stageCameraMarker(preset.camera).label).toBe(preset.label)
@@ -30,14 +36,19 @@ describe('stage camera viewpoint', () => {
     expect(outward.tip).toEqual({ x: 138, y: 50 })
   })
   it('distinguishes vertical views without inventing a horizontal direction', () => {
-    for (const [height, label] of [[0, 'recht omlaag'], [20, 'recht omhoog'], [10, 'geen kijkrichting']] as const) {
+    for (const [height, label] of [
+      [0, 'recht omlaag'],
+      [20, 'recht omhoog'],
+      [10, 'geen kijkrichting'],
+    ] as const) {
       const marker = stageCameraMarker({ position: [0, 10, 0], target: [0, height, 0], fov: 48 })
       expect(marker.tip).toBeUndefined()
       expect(marker.vertical).toBe(label)
     }
   })
   it('renders an accessible native button and prevents floor targeting on pointer down', () => {
-    const onOpen = vi.fn(), stopPropagation = vi.fn()
+    const onOpen = vi.fn(),
+      stopPropagation = vi.fn()
     const element = StageCameraMarker({ camera: stageCameraPresets[0].camera, onOpen })
     const button = element.props.children[1]
     button.props.onPointerDown({ stopPropagation })

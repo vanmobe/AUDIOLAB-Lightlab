@@ -187,11 +187,13 @@ Kwaliteitsbeperking: correcte JSON en aantallen garanderen niet dat iedere artis
 Aanvulling Repetitie: losse selectors tonen alle opgeslagen animaties en kleurprofielen, onafhankelijk van Looks. Tijdelijke combinaties en groepsniveaus wijzigen geen opgeslagen show of livebediening. 71 webtests slagen, inclusief combinaties zonder Look, terugval bij verwijderde items en hervatten na blackout/static. Browser: alle 5 animaties/4 profielen in de testshow bereikbaar, selecteren na blackout, terug naar Look, herstel masters en Repetitie → Live → Repetitie gecontroleerd. Live behield de oorspronkelijke Look en 75% wash terwijl repetitie een andere combinatie en 0% wash gebruikte; opgeslagen show bleef identiek. Desktop en 390px visueel gecontroleerd zonder horizontale overflow.
 
 Aanvulling collectie vervangen: aparte werkwijze vervangt alle drie collecties met 1–32 nieuwe items per soort; geen toevoeging of revisie. Echte Ollama-browsertest: 4/5/5 werd 2/2/2, uitsluitend na expliciet accepteren. De oude show werd identiek als extra versie bewaard; podium, groepen, patch, camera en sync bleven gelijk. Ongeldige oude Look-/kleurknoppen worden vooraf benoemd en verwijderd; modus-/masterbindings blijven behouden. Contracttests controleren 32/32/32, oude requestcompatibiliteit en geen verwijzingen naar verwijderde items. 75 webtests en beide builds slagen. Reviewversterking: herstelversies worden vóór showmutatie opgeslagen; opslagfout blokkeert vervangen.
+
 # Live WING-schermbediening
 
 De opgeslagen Setup-indeling is bedienbaar onder de livepreview. Bankkeuze voert geen actie uit; lege/ongeldige slots zijn uitgeschakeld. Look-, modus- en kleurknoppen hergebruiken livegedrag; rotaries regelen opgeslagen groepsmasters en volgen groepslinks. “Volg Lookkleur” wist alleen de kleurvergrendeling. Geen fysieke WING-synchronisatie of DMX-output toegevoegd.
 
 Validatie: 468 tests en productiebuild slagen. `scripts/check-live-wing.js` controleert in een geïsoleerde browser Lookselectie, behoud van blackout bij kleur/masterwijziging, kleur loslaten, bank 16, stabiele canvasafmetingen, gekoppelde masters, opslag na herladen en mobiele overflow. Desktop (1584px) en mobiel (390px) visueel gecontroleerd. Bestaande bundlegroottewaarschuwing blijft.
+
 # Groepsringen op het podium
 
 Podiumfixtures hebben een buitenring voor hun groep, naast hun bestaande typekleur. De legenda toont groepsnamen en aantallen: aanwijzen/focussen benadrukt de ringen, klikken of Enter selecteert de hele groep. Witte binnenrand plus selectiestip blijft onderscheiden van de groepskleur. Lege groepen zijn niet selecteerbaar. Bij Weergave kan ‘Groepsringen tonen’ uit; dit verandert de selectie of opgeslagen show niet. De voorkeur geldt zolang de podiumeditor open blijft.

@@ -22,7 +22,9 @@ export function LocalRuntimePanel() {
     if (
       pending.current ||
       !mounted.current ||
-      (action === 'start' && (!status?.canStart || issue)) ||
+      // The launcher rechecks ownership and the port before starting. A failed
+      // poll must not turn a last confirmed stopped runtime into a dead-end.
+      (action === 'start' && !status?.canStart) ||
       (action === 'stop' && !status?.canStop)
     )
       return
@@ -79,7 +81,7 @@ export function LocalRuntimePanel() {
         <div className="local-runtime-actions">
           <button
             type="button"
-            disabled={busy || !!issue || !status?.canStart}
+            disabled={busy || !status?.canStart}
             onClick={() => {
               void check('start')
             }}

@@ -43,13 +43,14 @@ import {
   type SimulationSettings,
 } from './simulation-settings'
 import { createShowPackage, createVersion, parseShowPackage, type ShowVersion, type ShowPackage } from './show-package'
-import { chooseRehearsalItem, followRehearsalLook, rehearsalPreview, type RehearsalState } from './rehearsal'
+import { followRehearsalLook, rehearsalPreview, type RehearsalState } from './rehearsal'
 import { LiveShortcutHelp } from './LiveShortcutHelp'
 import { adjacentLookId, isLiveShortcutTextInput, liveShortcutAction } from './live-shortcuts'
 import { WorkspaceNavigation, type Workspace } from './WorkspaceNavigation'
 import { DesignNavigation, type DesignSection } from './DesignNavigation'
 import { BrowserLiveStage } from './BrowserLiveStage'
 import { BrowserLiveControls } from './BrowserLiveControls'
+import { RehearsalControls } from './RehearsalControls'
 
 // Access to the browser Storage object itself may throw; defer it into the guarded loader.
 const activeStorage = {
@@ -964,122 +965,14 @@ export default function App() {
                 />
                 <aside className="control-panel">
                   {rehearsing && (
-                    <section className="rehearsal-controls" aria-label="Vrij combineren">
-                      <p className="section-label">
-                        VRIJ COMBINEREN <span>Alleen preview</span>
-                      </p>
-                      <p className="muted">
-                        Een vrije animatie vervangt het patroon op alle lichtgroepen (niet de hazer). Een kleurwissel
-                        geldt alleen voor lagen die de Lookkleur volgen. Je opgeslagen Looks blijven ongewijzigd.
-                      </p>
-                      <label>
-                        Animatie <small>{show.programs.length} beschikbaar</small>
-                        <select
-                          aria-label="Animatie uitproberen"
-                          value={rehearsal.programId ?? ''}
-                          disabled={!show.programs.length}
-                          onChange={(event) =>
-                            setRehearsal((current) => chooseRehearsalItem(show, current, 'program', event.target.value))
-                          }
-                        >
-                          <option value="" disabled>
-                            Volgt lagen van gekozen Look
-                          </option>
-                          {show.programs.map((program) => (
-                            <option key={program.id} value={program.id}>
-                              {animationLabel(program)}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                      <label>
-                        Kleurprofiel <small>{show.colorProfiles.length} beschikbaar</small>
-                        <select
-                          aria-label="Kleurprofiel uitproberen"
-                          value={preview.profile?.id ?? ''}
-                          disabled={!show.colorProfiles.length}
-                          onChange={(event) =>
-                            setRehearsal((current) => chooseRehearsalItem(show, current, 'profile', event.target.value))
-                          }
-                        >
-                          {show.colorProfiles.map((profile) => (
-                            <option key={profile.id} value={profile.id}>
-                              {profile.name}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                      {preview.profile && (
-                        <div className="rehearsal-swatches" aria-label="Kleuren in dit profiel">
-                          {(['primary', 'secondary', 'accent', 'white'] as const).map((role, index) => (
-                            <span key={role}>
-                              <i style={{ background: preview.profile![role] }} />
-                              <small>{['Hoofd', 'Tweede', 'Accent', 'Wit'][index]}</small>
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                      <p className="muted">
-                        {rehearsal.programId && preview.program
-                          ? animationLabel(preview.program)
-                          : preview.look
-                            ? lookLayerSummary(show, preview.look)
-                            : 'Geen Look geselecteerd'}
-                      </p>
-                      <p role="status">
-                        {rehearsal.programId
-                          ? 'Losse animatie actief: de groepsanimaties, timing en offsets van de Look worden niet gebruikt. Kies “Volg gekozen Look” om die te bekijken.'
-                          : preview.custom
-                            ? 'Vrije combinatie'
-                            : `Volgt Look: ${preview.look?.name ?? 'geen'}`}
-                      </p>
-                      <button disabled={!preview.look} onClick={() => selectLook(preview.look!.id)}>
-                        Volg gekozen Look
-                      </button>
-                      <details>
-                        <summary>Wat zie je in de preview?</summary>
-                        <p>
-                          De huidige animaties gebruiken de hoofd- en accentkleur. Varytec-frontspots blijven warmwit.
-                          Elke Look bevat het lichtgedrag per groep; groepsniveaus hieronder gelden alleen voor deze
-                          repetitie.
-                        </p>
-                      </details>
-                    </section>
-                  )}
-                  {rehearsing && (
-                    <section>
-                      <p className="section-label">SHOWBEDIENING</p>
-                      <div className="state-grid">
-                        <button
-                          aria-pressed={displayedState.mode === 'automation'}
-                          className={displayedState.mode === 'automation' ? 'active' : ''}
-                          onClick={() => setMode('automation')}
-                        >
-                          Show afspelen
-                        </button>
-                        <button
-                          aria-pressed={displayedState.mode === 'static'}
-                          className={displayedState.mode === 'static' ? 'active' : ''}
-                          onClick={() => setMode('static')}
-                        >
-                          Beeld vasthouden
-                        </button>
-                        <button
-                          aria-pressed={displayedState.mode === 'safety'}
-                          className={displayedState.mode === 'safety' ? 'active' : ''}
-                          onClick={() => setMode('safety')}
-                        >
-                          {safetyLabel(show)}
-                        </button>
-                        <button
-                          aria-pressed={displayedState.mode === 'blackout'}
-                          className="blackout"
-                          onClick={() => setMode('blackout')}
-                        >
-                          Blackout
-                        </button>
-                      </div>
-                    </section>
+                    <RehearsalControls
+                      show={show}
+                      rehearsal={rehearsal}
+                      preview={preview}
+                      state={displayedState}
+                      onRehearsalChange={setRehearsal}
+                      onMode={setMode}
+                    />
                   )}
                   {!rehearsing ? (
                     <BrowserLiveControls
@@ -1097,67 +990,7 @@ export default function App() {
                       onArm={setArmedLookId}
                       onConfigure={() => setWorkspace('control')}
                     />
-                  ) : (
-                    <section>
-                      <p className="section-label">LOOKS</p>
-                      <div className="look-list">
-                        {show.looks.map((look) => (
-                          <button
-                            key={look.id}
-                            className={
-                              look.id === activeLook?.id && displayedState.mode === 'automation' && !preview.custom
-                                ? 'look active'
-                                : 'look'
-                            }
-                            onClick={() => selectLook(look.id)}
-                          >
-                            <span>{look.name}</span>
-                            <small>{lookLayerSummary(show, look)}</small>
-                          </button>
-                        ))}
-                      </div>
-                    </section>
-                  )}
-                  <details className="live-master-disclosure" open={rehearsing}>
-                    <summary>
-                      Groepsmasters <span>{rehearsing ? 'Alleen preview' : 'Bewaard in show'}</span>
-                    </summary>
-                    <section>
-                      <p className="section-label">
-                        GROEPSMASTERS <span>{rehearsing ? 'Alleen preview' : 'Bewaard in show'}</span>
-                      </p>
-                      {!rehearsing && (
-                        <p className="muted">
-                          Vermenigvuldigen het Lookniveau. Gelinkte groepen volgen dezelfde masterwijziging.
-                        </p>
-                      )}
-                      {displayedShow.groups.map((group) => (
-                        <label className="master" key={group.id}>
-                          <span>
-                            {group.name}
-                            {!rehearsing && linkedGroupIds(show, liveControls, group.id).length > 1 && ' · gelinkt'}
-                          </span>
-                          <output>{Math.round(group.intensity * 100)}%</output>
-                          <input
-                            aria-label={`${group.name} intensity`}
-                            type="range"
-                            min="0"
-                            max="1"
-                            step="0.01"
-                            value={group.intensity}
-                            onChange={(event) => setGroupIntensity(group.id, Number(event.target.value))}
-                          />
-                        </label>
-                      ))}
-                      {rehearsing && (
-                        <button
-                          onClick={() => setRehearsal((current) => ({ ...current, groupIntensities: undefined }))}
-                        >
-                          Herstel groepsniveaus
-                        </button>
-                      )}
-                    </section>
-                  </details>
+                  ) : null}
                 </aside>
               </section>
             </>

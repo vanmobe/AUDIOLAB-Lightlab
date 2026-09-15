@@ -71,6 +71,35 @@ export function BrowserLiveControls({
         </summary>
         <LiveGroupControls show={show} state={state} controls={controls} onChange={onControlsChange} />
       </details>
+      <details className="live-master-disclosure">
+        <summary>
+          Groepsmasters <span>Bewaard in show</span>
+        </summary>
+        <section>
+          <p className="section-label">
+            GROEPSMASTERS <span>Bewaard in show</span>
+          </p>
+          <p className="muted">Vermenigvuldigen het Lookniveau. Gelinkte groepen volgen dezelfde masterwijziging.</p>
+          {show.groups.map((group) => (
+            <label className="master" key={group.id}>
+              <span>
+                {group.name}
+                {linkedGroupIds(show, controls, group.id).length > 1 && ' · gelinkt'}
+              </span>
+              <output>{Math.round(group.intensity * 100)}%</output>
+              <input
+                aria-label={`${group.name} intensity`}
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                value={group.intensity}
+                onChange={(event) => onIntensity(group.id, Number(event.target.value))}
+              />
+            </label>
+          ))}
+        </section>
+      </details>
       <div hidden={controller !== 'looks'}>
         <LiveLookLibrary
           show={show}

@@ -35,20 +35,20 @@ Official references:
 
 ## Scope and review plan
 
-| Track | Coverage |
-| --- | --- |
-| Implementation | Required: official SDK adapter, request-local routing, installed-account model list and UI. |
-| Documentation | Required: authentication, cloud boundary, compatibility, diagnostics and validation evidence. |
-| Delivery/git | Light: existing dirty workspace preserved; no branches, commits or release ZIP changes requested. |
-| Architecture | Required: transport isolated from show contracts and physical output; shared validators remain authoritative. |
-| Maintainability/code quality | Required: shared context projection and provider seam, no duplicate creative engine or fallback. |
-| UX/user perspective | Required: explicit destination/model/consent, missing-model recovery, actionable login and errors. |
-| Visual design | Light: existing Audiolab controls, spacing and responsive layout. |
-| Security | Required: deny tools/permissions, disable ambient discovery, credentials never exposed to browser/model. |
-| Validation | Required: real SDK startup/auth/model discovery, browser workflow and a small generation if authentication permits. |
-| Risk | Required: cloud usage, version skew, missing CLI/auth/model, cancellation and bounded responses. |
-| Data lifecycle/diagnostics | Required: isolated request sessions, bounded temporary preview/trace, SDK capture honestly distinguished from raw cloud wire. |
-| Testing | Required: fake transport failures/allowlists/cancellation, frontend consent/provider isolation and existing regressions. |
+| Track                        | Coverage                                                                                                                      |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Implementation               | Required: official SDK adapter, request-local routing, installed-account model list and UI.                                   |
+| Documentation                | Required: authentication, cloud boundary, compatibility, diagnostics and validation evidence.                                 |
+| Delivery/git                 | Light: existing dirty workspace preserved; no branches, commits or release ZIP changes requested.                             |
+| Architecture                 | Required: transport isolated from show contracts and physical output; shared validators remain authoritative.                 |
+| Maintainability/code quality | Required: shared context projection and provider seam, no duplicate creative engine or fallback.                              |
+| UX/user perspective          | Required: explicit destination/model/consent, missing-model recovery, actionable login and errors.                            |
+| Visual design                | Light: existing Audiolab controls, spacing and responsive layout.                                                             |
+| Security                     | Required: deny tools/permissions, disable ambient discovery, credentials never exposed to browser/model.                      |
+| Validation                   | Required: real SDK startup/auth/model discovery, browser workflow and a small generation if authentication permits.           |
+| Risk                         | Required: cloud usage, version skew, missing CLI/auth/model, cancellation and bounded responses.                              |
+| Data lifecycle/diagnostics   | Required: isolated request sessions, bounded temporary preview/trace, SDK capture honestly distinguished from raw cloud wire. |
+| Testing                      | Required: fake transport failures/allowlists/cancellation, frontend consent/provider isolation and existing regressions.      |
 
 The .NET backend and independent security/architecture reviewer work in parallel; the parent owns UI, setup, browser checks and documentation. Hardware output, MIDI/WING and Dante remain out of scope.
 

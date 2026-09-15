@@ -6,21 +6,31 @@ function signal(times: number[], duration = 5, amplitude = 0.8) {
   const samples = new Float32Array(rate * duration)
   for (const time of times) {
     for (let i = 0; i < rate * 0.18 && i + Math.round(time * rate) < samples.length; i++) {
-      samples[i + Math.round(time * rate)] += amplitude * Math.sin(2 * Math.PI * 65 * i / rate) * Math.exp(-i / rate * 28)
+      samples[i + Math.round(time * rate)] +=
+        amplitude * Math.sin((2 * Math.PI * 65 * i) / rate) * Math.exp((-i / rate) * 28)
     }
   }
   return samples
 }
 function wav(encoding = 1, bits = 16, channels = 1, sampleRate = rate, duration = 1) {
-  const bytes = sampleRate * channels * bits / 8 * duration
+  const bytes = ((sampleRate * channels * bits) / 8) * duration
   const buffer = new ArrayBuffer(44 + bytes)
   const view = new DataView(buffer)
-  const tag = (offset: number, value: string) => [...value].forEach((letter, i) => view.setUint8(offset + i, letter.charCodeAt(0)))
-  tag(0, 'RIFF'); view.setUint32(4, buffer.byteLength - 8, true); tag(8, 'WAVE'); tag(12, 'fmt ')
-  view.setUint32(16, 16, true); view.setUint16(20, encoding, true); view.setUint16(22, channels, true)
-  view.setUint32(24, sampleRate, true); view.setUint32(28, sampleRate * channels * bits / 8, true)
-  view.setUint16(32, channels * bits / 8, true); view.setUint16(34, bits, true)
-  tag(36, 'data'); view.setUint32(40, bytes, true)
+  const tag = (offset: number, value: string) =>
+    [...value].forEach((letter, i) => view.setUint8(offset + i, letter.charCodeAt(0)))
+  tag(0, 'RIFF')
+  view.setUint32(4, buffer.byteLength - 8, true)
+  tag(8, 'WAVE')
+  tag(12, 'fmt ')
+  view.setUint32(16, 16, true)
+  view.setUint16(20, encoding, true)
+  view.setUint16(22, channels, true)
+  view.setUint32(24, sampleRate, true)
+  view.setUint32(28, (sampleRate * channels * bits) / 8, true)
+  view.setUint16(32, (channels * bits) / 8, true)
+  view.setUint16(34, bits, true)
+  tag(36, 'data')
+  view.setUint32(40, bytes, true)
   return buffer
 }
 
@@ -35,7 +45,7 @@ describe('kick analysis', () => {
     expect(result.waveform).toHaveLength(1024)
   })
   it('does not turn sustained bass into repeating triggers', () => {
-    const samples = Float32Array.from({ length: rate * 3 }, (_, i) => Math.sin(2 * Math.PI * 65 * i / rate) * 0.95)
+    const samples = Float32Array.from({ length: rate * 3 }, (_, i) => Math.sin((2 * Math.PI * 65 * i) / rate) * 0.95)
     expect(analyzeKickAudio(samples, rate).kicks.length).toBeLessThanOrEqual(1)
   })
   it('returns empty results for silence and empty audio', () => {
@@ -44,21 +54,27 @@ describe('kick analysis', () => {
       expect(result.kicks).toEqual([])
       expect(result.bpm).toBeNull()
       expect(result.confidence).toBe(0)
-      expect(result.waveform.every(value => value === 0)).toBe(true)
+      expect(result.waveform.every((value) => value === 0)).toBe(true)
     }
   })
   it('rejects steady broadband noise as a kick train', () => {
     let seed = 123
     const noise = Float32Array.from({ length: rate * 3 }, () => {
       seed = (1664525 * seed + 1013904223) >>> 0
-      return (seed / 0xffffffff * 2 - 1) * 0.8
+      return ((seed / 0xffffffff) * 2 - 1) * 0.8
     })
     expect(analyzeKickAudio(noise, rate).kicks).toHaveLength(0)
   })
   it('ignores higher-frequency transients and does not retrigger a long kick tail', () => {
-    const treble = Float32Array.from({ length: rate }, (_, i) => Math.sin(2 * Math.PI * 3000 * i / rate) * Math.exp(-i / rate * 15))
+    const treble = Float32Array.from(
+      { length: rate },
+      (_, i) => Math.sin((2 * Math.PI * 3000 * i) / rate) * Math.exp((-i / rate) * 15),
+    )
     expect(analyzeKickAudio(treble, rate).kicks).toHaveLength(0)
-    const tail = Float32Array.from({ length: rate * 2 }, (_, i) => Math.sin(2 * Math.PI * 65 * i / rate) * Math.exp(-i / rate * 2))
+    const tail = Float32Array.from(
+      { length: rate * 2 },
+      (_, i) => Math.sin((2 * Math.PI * 65 * i) / rate) * Math.exp((-i / rate) * 2),
+    )
     expect(analyzeKickAudio(tail, rate, { minIntervalMs: 80, sensitivity: 1 }).kicks).toHaveLength(1)
   })
   it('honors the refractory interval and sensitivity', () => {
@@ -66,8 +82,9 @@ describe('kick analysis', () => {
     expect(analyzeKickAudio(samples, rate, { minIntervalMs: 400 }).kicks).toHaveLength(2)
     expect(analyzeKickAudio(samples, rate, { minIntervalMs: 80 }).kicks).toHaveLength(4)
     const quiet = signal([0.25, 0.75], 1, 0.012)
-    expect(analyzeKickAudio(quiet, rate, { sensitivity: 1 }).kicks.length)
-      .toBeGreaterThan(analyzeKickAudio(quiet, rate, { sensitivity: 0 }).kicks.length)
+    expect(analyzeKickAudio(quiet, rate, { sensitivity: 1 }).kicks.length).toBeGreaterThan(
+      analyzeKickAudio(quiet, rate, { sensitivity: 0 }).kicks.length,
+    )
   })
   it('does not claim tempo certainty for irregular isolated kicks', () => {
     const result = analyzeKickAudio(signal([0.1, 0.45, 1.2, 2.3, 2.55, 3.9]), rate)
@@ -75,7 +92,7 @@ describe('kick analysis', () => {
     expect(result.confidence).toBeLessThan(0.65)
   })
   it('clamps clipped finite samples and rejects malformed/beyond-duration inputs', () => {
-    expect(analyzeKickAudio(signal([0.2], 1, 4), rate).waveform.every(value => value <= 1)).toBe(true)
+    expect(analyzeKickAudio(signal([0.2], 1, 4), rate).waveform.every((value) => value <= 1)).toBe(true)
     expect(() => analyzeKickAudio(new Float32Array([NaN]), rate)).toThrow('samples')
     expect(() => analyzeKickAudio(new Float32Array(8000 * 601), 8000)).toThrow('10 minuten')
     expect(() => analyzeKickAudio(new Float32Array(0), Infinity)).toThrow('samplefrequentie')
@@ -90,7 +107,12 @@ describe('WAV preflight', () => {
     expect(inspectWav(wav(1, 16, 1, 48000, duration)).duration).toBeCloseTo(duration)
     expect(analyzeKickAudio(new Float32Array(8000 * 379), 8000).duration).toBe(379)
   })
-  it.each([[1, 16], [1, 24], [1, 32], [3, 32]])('accepts bounded uncompressed encoding %s/%s', (encoding, bits) => {
+  it.each([
+    [1, 16],
+    [1, 24],
+    [1, 32],
+    [3, 32],
+  ])('accepts bounded uncompressed encoding %s/%s', (encoding, bits) => {
     expect(inspectWav(wav(encoding, bits, 2))).toEqual({ duration: 1, channels: 2, sampleRate: rate })
   })
   it('rejects malformed, truncated, oversized and misleading rate metadata before decode', () => {

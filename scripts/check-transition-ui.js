@@ -1,13 +1,18 @@
 // Isolated dev-server browser profile. Settings only; no physical or AI requests.
-async page => {
-  const assert = (ok, message) => { if (!ok) throw new Error(message) }
-  const errors = [], outputCalls = []
-  page.on('pageerror', error => errors.push(error.message))
-  page.on('request', request => { if (request.url().includes('/output/')) outputCalls.push(request.url()) })
+;async (page) => {
+  const assert = (ok, message) => {
+    if (!ok) throw new Error(message)
+  }
+  const errors = [],
+    outputCalls = []
+  page.on('pageerror', (error) => errors.push(error.message))
+  page.on('request', (request) => {
+    if (request.url().includes('/output/')) outputCalls.push(request.url())
+  })
   await page.setViewportSize({ width: 1440, height: 1000 })
   await page.getByRole('button', { name: '2 · Ontwerp & repetitie', exact: true }).click()
   const regie = page.locator('.show-regie')
-  if (!await regie.evaluate(el => el.open)) await regie.locator('summary').click()
+  if (!(await regie.evaluate((el) => el.open))) await regie.locator('summary').click()
   await page.getByLabel('Look overgangsduur', { exact: true }).fill('0')
   await page.getByRole('combobox', { name: 'Startmoment', exact: true }).selectOption('0')
   await page.getByLabel('Look in de studio', { exact: true }).selectOption({ label: 'Warm static' })
@@ -20,7 +25,10 @@ async page => {
   await page.locator('.look-studio-preview').screenshot({ path: 'output/playwright/transition-studio.png' })
   await page.locator('.transition-status').waitFor({ state: 'hidden', timeout: 10000 })
   await page.getByRole('button', { name: '3 · Live', exact: true }).click()
-  await page.getByRole('region', { name: 'Live Looks', exact: true }).getByRole('button', { name: 'Neon chorus', exact: true }).click()
+  await page
+    .getByRole('region', { name: 'Live Looks', exact: true })
+    .getByRole('button', { name: 'Neon chorus', exact: true })
+    .click()
   await page.locator('.transition-status').waitFor()
   await page.getByRole('button', { name: 'Blackout', exact: true }).click()
   await page.locator('.transition-status').waitFor({ state: 'hidden' })
@@ -39,12 +47,21 @@ async page => {
   await page.reload()
   await page.getByRole('button', { name: '2 · Ontwerp & repetitie', exact: true }).click()
   await page.getByRole('button', { name: 'Maak met AI', exact: true }).click()
-  assert(await page.getByRole('combobox', { name: /Ollama-tijdslimiet/ }).inputValue() === '30', 'Local timeout survives reload')
+  assert(
+    (await page.getByRole('combobox', { name: /Ollama-tijdslimiet/ }).inputValue()) === '30',
+    'Local timeout survives reload',
+  )
   await page.getByRole('combobox', { name: /Ollama-tijdslimiet/ }).selectOption('15')
   await page.setViewportSize({ width: 390, height: 844 })
-  assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'No mobile horizontal overflow')
+  assert(
+    await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
+    'No mobile horizontal overflow',
+  )
   const bundle = await page.evaluate(() => JSON.parse(localStorage.getItem('lightlab-active-package-v1')))
-  assert(bundle.show.regie.transition.fadeBeats === 8 && bundle.show.regie.transition.quantizeBeats === 4, 'Transition settings persist atomically')
+  assert(
+    bundle.show.regie.transition.fadeBeats === 8 && bundle.show.regie.transition.quantizeBeats === 4,
+    'Transition settings persist atomically',
+  )
   assert(!JSON.stringify(bundle).includes('ollamaTimeoutMinutes'), 'Timeout stays outside show package')
   assert(errors.length === 0 && outputCalls.length === 0, JSON.stringify({ errors, outputCalls }))
   return 'Visible queued/fading Look transitions, persisted regie/timeout, 20 studio/live scene cycles, mobile layout: passed; no AI generation or physical output.'

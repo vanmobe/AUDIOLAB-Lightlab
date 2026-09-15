@@ -9,7 +9,10 @@ const labels: Record<RuntimeMode, string> = {
 }
 
 export function LiveStageOverlay({ mode, output }: { mode: RuntimeMode; output: string }) {
-  return <div className={`live-stage-state is-${mode}`} role="status">
-    <span>{output}</span><strong>{labels[mode]}</strong>
-  </div>
+  return (
+    <div className={`live-stage-state is-${mode}`} role="status">
+      <span>{output}</span>
+      <strong>{labels[mode]}</strong>
+    </div>
+  )
 }

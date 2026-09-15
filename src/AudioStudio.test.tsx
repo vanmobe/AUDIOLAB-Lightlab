@@ -12,7 +12,9 @@ it('explains local-only audio and offers source, detection and group controls', 
   expect(html).not.toContain('autoplay')
 })
 it('offers tempo and kick follow in Live without a second stage or Look selector', () => {
-  const html = renderToStaticMarkup(<AudioStudio show={initialShow} live selectedLiveLookId={initialShow.activeLookId} />)
+  const html = renderToStaticMarkup(
+    <AudioStudio show={initialShow} live selectedLiveLookId={initialShow.activeLookId} />,
+  )
   expect(html).toContain('Live-simulatie volgt deze WAV')
   expect(html).toContain('Stabiel tempo')
   expect(html).toContain('Losse kicks')

@@ -23,11 +23,11 @@ Banknamen blijven in Lightlab. Labels worden genormaliseerd naar maximaal 16 ASC
 
 Alle drie endpoints zijn expliciete POST-verzoeken onder `http://127.0.0.1:5188/controllers/wing/`, met bestaande Host-/Origin-controle. JSON heeft versie 1, verplichte velden en geen onbekende of dubbele sleutels. Verzoeklimiet 256 KiB, body-inleestijd 5 seconden; één operatie tegelijk, maximaal 90 seconden totaal en 2 seconden per OSC-query. Er is geen generieke OSC-proxy.
 
-| Endpoint | Verzoek naast `version:1` | Resultaat |
-|---|---|---|
-| `probe` | `address` | Adres en apparaatnaam/model/firmware; geen serienummer |
-| `plan` | `address`, `profileId`, `banks`, `bindings` | `planId`, `expiresAt`, apparaat, `changes` en waarschuwingen |
-| `apply` | `planId`, `confirm:true` | `state:applied\|partial`, `verifiedSlots`, `totalSlots`, `error`, `backup` |
+| Endpoint | Verzoek naast `version:1`                   | Resultaat                                                                  |
+| -------- | ------------------------------------------- | -------------------------------------------------------------------------- |
+| `probe`  | `address`                                   | Adres en apparaatnaam/model/firmware; geen serienummer                     |
+| `plan`   | `address`, `profileId`, `banks`, `bindings` | `planId`, `expiresAt`, apparaat, `changes` en waarschuwingen               |
+| `apply`  | `planId`, `confirm:true`                    | `state:applied\|partial`, `verifiedSlots`, `totalSlots`, `error`, `backup` |
 
 Elke binding bevat uitsluitend `bank`, `kind:button|rotary`, `index`, `label`. Maximaal 16 unieke banken en 192 unieke toegewezen posities; geen pad, actiecode, doel-ID, rotarywaarde of show-inhoud. Een wijziging bevat die positie met `before` en `after` als veldwaarden. Foutcodes: 400 voor ongeldige invoer, 403 voor Host/Origin, 409 voor conflicten/model/firmware/verlopen plan, 413 voor te grote body, 503 voor netwerk/protocolproblemen en 504 voor timeout vóór schrijven. Na gestart schrijven wordt een gevangen netwerk-/timeoutfout als `partial` gerapporteerd; bij verlies van de HTTP-verbinding blijft het resultaat onzeker.
 

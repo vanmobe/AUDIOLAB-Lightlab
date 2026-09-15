@@ -12,7 +12,7 @@ describe('preview musical clock', () => {
     expect(advancePreviewBeat(4, 500, 240)).toBe(6)
   })
   it('remains independent of frame cadence', () => {
-    const manyFrames = Array.from({ length: 100 }).reduce<number>(beat => advancePreviewBeat(beat, 10, 90), 0)
+    const manyFrames = Array.from({ length: 100 }).reduce<number>((beat) => advancePreviewBeat(beat, 10, 90), 0)
     expect(manyFrames).toBeCloseTo(advancePreviewBeat(0, 1000, 90), 10)
   })
   it('ignores invalid elapsed time and invalid tempo without losing phase', () => {
@@ -20,7 +20,8 @@ describe('preview musical clock', () => {
     for (const bpm of [0, 29, 241, NaN, Infinity]) expect(advancePreviewBeat(7, 1000, bpm)).toBe(7)
   })
   it('accepts only finite tempos in the supported inclusive range', () => {
-    for (const value of ['', ' ', '0', '29', '241', 'NaN', 'Infinity', 'abc']) expect(validPreviewBpm(value)).toBeUndefined()
+    for (const value of ['', ' ', '0', '29', '241', 'NaN', 'Infinity', 'abc'])
+      expect(validPreviewBpm(value)).toBeUndefined()
     for (const value of ['30', '240', '120', '100.5']) expect(validPreviewBpm(value)).toBe(Number(value))
   })
 })

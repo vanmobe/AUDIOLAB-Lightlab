@@ -1,19 +1,99 @@
-.band-profile-editor { border: 1px solid var(--line, #35404f); border-radius: 14px; padding: 1rem; margin-block: 1rem; min-width: 0; }
-.band-profile-editor > summary { cursor: pointer; font-weight: 650; overflow-wrap: anywhere; }
-.band-profile-editor > p, .band-profile-preferences > p { color: var(--muted, #aab6c7); }
-.band-profile-editor fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
-.band-profile-legend { font-size: .85rem; color: var(--muted, #aab6c7); margin-bottom: .6rem; }
-.band-profile-editor label { display: grid; gap: .35rem; min-width: 0; }
-.band-profile-editor textarea { width: 100%; box-sizing: border-box; resize: vertical; min-height: 5rem; }
-.band-profile-identity, .band-profile-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem; margin-block: .7rem; }
-.band-profile-preferences { margin-block: 1rem; }
-.band-profile-preferences > summary { cursor: pointer; }
-.band-profile-swatches, .band-profile-color-add { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; }
-.band-profile-swatch { display: flex; align-items: center; gap: .3rem; }
-.band-profile-editor input[type=color] { width: 3rem; height: 2.5rem; padding: .15rem; flex: 0 0 3rem; }
-.band-profile-color-add { margin-top: .7rem; }
-.band-profile-editor fieldset:disabled { opacity: .6; }
-.band-profile-limits { color: var(--muted, #aab6c7); font-size: .9rem; }
-.band-request-context { min-width: 0; margin-block: .8rem; }
-.band-request-context pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 24rem; overflow: auto; font-size: .8rem; padding: .8rem; border-radius: 8px; background: #10151d; }
-@media (max-width: 600px) { .band-profile-identity, .band-profile-choices { grid-template-columns: 1fr; } }
+.band-profile-editor {
+  border: 1px solid var(--line, #35404f);
+  border-radius: 14px;
+  padding: 1rem;
+  margin-block: 1rem;
+  min-width: 0;
+}
+.band-profile-editor > summary {
+  cursor: pointer;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+.band-profile-editor > p,
+.band-profile-preferences > p {
+  color: var(--muted, #aab6c7);
+}
+.band-profile-editor fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.band-profile-legend {
+  font-size: 0.85rem;
+  color: var(--muted, #aab6c7);
+  margin-bottom: 0.6rem;
+}
+.band-profile-editor label {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+}
+.band-profile-editor textarea {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  min-height: 5rem;
+}
+.band-profile-identity,
+.band-profile-choices {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin-block: 0.7rem;
+}
+.band-profile-preferences {
+  margin-block: 1rem;
+}
+.band-profile-preferences > summary {
+  cursor: pointer;
+}
+.band-profile-swatches,
+.band-profile-color-add {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+}
+.band-profile-swatch {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.band-profile-editor input[type='color'] {
+  width: 3rem;
+  height: 2.5rem;
+  padding: 0.15rem;
+  flex: 0 0 3rem;
+}
+.band-profile-color-add {
+  margin-top: 0.7rem;
+}
+.band-profile-editor fieldset:disabled {
+  opacity: 0.6;
+}
+.band-profile-limits {
+  color: var(--muted, #aab6c7);
+  font-size: 0.9rem;
+}
+.band-request-context {
+  min-width: 0;
+  margin-block: 0.8rem;
+}
+.band-request-context pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 24rem;
+  overflow: auto;
+  font-size: 0.8rem;
+  padding: 0.8rem;
+  border-radius: 8px;
+  background: #10151d;
+}
+@media (max-width: 600px) {
+  .band-profile-identity,
+  .band-profile-choices {
+    grid-template-columns: 1fr;
+  }
+}

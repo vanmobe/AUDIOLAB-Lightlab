@@ -5,16 +5,32 @@ import { BandProfileEditor } from './BandProfileEditor'
 import { defaultBandProfile, type BandProfile } from './band-profile'
 
 const hooks = vi.hoisted(() => ({ cursor: 0, values: [] as unknown[] }))
-vi.mock('react', async original => ({
-  ...await original<typeof import('react')>(),
+vi.mock('react', async (original) => ({
+  ...(await original<typeof import('react')>()),
   useState: (initial: unknown) => {
     const index = hooks.cursor++
     if (!(index in hooks.values)) hooks.values[index] = initial
-    return [hooks.values[index], (next: unknown) => { hooks.values[index] = typeof next === 'function' ? next(hooks.values[index]) : next }]
+    return [
+      hooks.values[index],
+      (next: unknown) => {
+        hooks.values[index] = typeof next === 'function' ? next(hooks.values[index]) : next
+      },
+    ]
   },
 }))
-interface Props { children?: ReactNode; 'aria-label'?: string; onChange?: (event: { target: { value: string } }) => void; onClick?: () => void; open?: boolean; onToggle?: (event: { currentTarget: { open: boolean } }) => void }
-function words(node: ReactNode): string { return Children.toArray(node).map(child => isValidElement<Props>(child) ? words(child.props.children) : String(child)).join('') }
+interface Props {
+  children?: ReactNode
+  'aria-label'?: string
+  onChange?: (event: { target: { value: string } }) => void
+  onClick?: () => void
+  open?: boolean
+  onToggle?: (event: { currentTarget: { open: boolean } }) => void
+}
+function words(node: ReactNode): string {
+  return Children.toArray(node)
+    .map((child) => (isValidElement<Props>(child) ? words(child.props.children) : String(child)))
+    .join('')
+}
 function find(node: ReactNode, match: (props: Props) => boolean): Props | undefined {
   for (const child of Children.toArray(node)) {
     if (!isValidElement<Props>(child)) continue
@@ -24,13 +40,22 @@ function find(node: ReactNode, match: (props: Props) => boolean): Props | undefi
   }
 }
 function session(initial?: BandProfile, disabled = false) {
-  hooks.values = []; hooks.cursor = 0
+  hooks.values = []
+  hooks.cursor = 0
   let value = initial ? structuredClone(initial) : undefined
-  const changed = vi.fn((profile: BandProfile | undefined) => { value = profile })
-  const render = () => { hooks.cursor = 0; return BandProfileEditor({ value, onChange: changed, disabled }) }
-  return { render, changed, value: () => value,
-    label: (name: string) => find(render(), props => props['aria-label'] === name)!,
-    button: (name: string) => find(render(), props => !!props.onClick && words(props.children) === name)!,
+  const changed = vi.fn((profile: BandProfile | undefined) => {
+    value = profile
+  })
+  const render = () => {
+    hooks.cursor = 0
+    return BandProfileEditor({ value, onChange: changed, disabled })
+  }
+  return {
+    render,
+    changed,
+    value: () => value,
+    label: (name: string) => find(render(), (props) => props['aria-label'] === name)!,
+    button: (name: string) => find(render(), (props) => !!props.onClick && words(props.children) === name)!,
   }
 }
 
@@ -57,13 +82,19 @@ describe('band profile editor workflow', () => {
   it('preserves user expansion state while editing an existing profile', () => {
     const view = session({ ...defaultBandProfile, name: 'Existing' })
     expect(view.render().props.open).toBe(false)
-    find(view.render(), props => !!props.onToggle)!.onToggle!({ currentTarget: { open: true } })
+    find(view.render(), (props) => !!props.onToggle)!.onToggle!({ currentTarget: { open: true } })
     view.label('Bandnaam').onChange!({ target: { value: 'New name' } })
     expect(view.render().props.open).toBe(true)
   })
   it('writes explicit qualitative choices and explains resulting new-output limits', () => {
     const view = session()
-    for (const [label, value] of [['Kleurgevoel', 'warm'], ['Energie', 'high'], ['Complexiteit', 'simple'], ['Bewegingstempo', 'slow']]) view.label(label).onChange!({ target: { value } })
+    for (const [label, value] of [
+      ['Kleurgevoel', 'warm'],
+      ['Energie', 'high'],
+      ['Complexiteit', 'simple'],
+      ['Bewegingstempo', 'slow'],
+    ])
+      view.label(label).onChange!({ target: { value } })
     expect(view.value()).toMatchObject({ colorMood: 'warm', energy: 'high', complexity: 'simple', motion: 'slow' })
     const html = renderToStaticMarkup(view.render())
     expect(html).toContain('Maximaal 2 stappen per nieuw patroon')

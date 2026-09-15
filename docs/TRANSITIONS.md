@@ -41,12 +41,12 @@ The real process chain passed quantized queuing, intermediate fade colors, inter
 
 Measured on this Mac during the session shared with a concurrent local-AI acceptance task:
 
-| Measure | Observation |
-| --- | --- |
-| HTTP response-header latency | median 1.81 ms, p95 2.25 ms, maximum 94.06 ms |
-| Observed frame-count cadence | median 38.83 Hz, fifth percentile 29.30 Hz |
-| Node worker RSS | start 44,720 KiB; end 46,608 KiB; sampled maximum 50,320 KiB |
-| Companion RSS | start 65,616 KiB; end 180,592 KiB; intermediate drops and later growth |
-| Worker lifecycle | one worker throughout; zero direct child processes after explicit Stop |
+| Measure                      | Observation                                                            |
+| ---------------------------- | ---------------------------------------------------------------------- |
+| HTTP response-header latency | median 1.81 ms, p95 2.25 ms, maximum 94.06 ms                          |
+| Observed frame-count cadence | median 38.83 Hz, fifth percentile 29.30 Hz                             |
+| Node worker RSS              | start 44,720 KiB; end 46,608 KiB; sampled maximum 50,320 KiB           |
+| Companion RSS                | start 65,616 KiB; end 180,592 KiB; intermediate drops and later growth |
+| Worker lifecycle             | one worker throughout; zero direct child processes after explicit Stop |
 
 The cadence is not browser FPS or a guaranteed 40 Hz deadline. Companion memory did not demonstrate a plateau; AI overlap and managed allocation/collection are confounders. This run is not proof of leak-free endurance, maximum-capacity performance or cross-platform behavior. A longer isolated profile remains necessary. Cleanup confirmed stopped/output-disabled state and unarmed health; no hardware endpoints were called.

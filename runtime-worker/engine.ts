@@ -3,7 +3,8 @@ import { createEngineProtocol } from './protocol'
 
 const maximumLineBytes = 2 * 1024 * 1024
 const handle = createEngineProtocol()
-let parts: Buffer[] = [], length = 0
+let parts: Buffer[] = [],
+  length = 0
 let failed = false
 function stop() {
   if (!failed) process.stderr.write('Engine gestopt: protocol- of streamfout.\n')
@@ -16,7 +17,11 @@ process.stdout.on('error', stop)
 
 async function reply(line: Buffer) {
   let input: unknown
-  try { input = JSON.parse(line.toString('utf8')) } catch { input = undefined }
+  try {
+    input = JSON.parse(line.toString('utf8'))
+  } catch {
+    input = undefined
+  }
   if (!process.stdout.write(JSON.stringify(handle(input)) + '\n')) await once(process.stdout, 'drain')
 }
 
@@ -33,7 +38,8 @@ try {
       parts.push(part)
       if (newline >= 0) {
         await reply(Buffer.concat(parts, length))
-        parts = []; length = 0
+        parts = []
+        length = 0
       }
       start = end + 1
     }

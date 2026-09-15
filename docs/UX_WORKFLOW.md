@@ -24,6 +24,7 @@ Na een show openen toont Live vóór het starten de naam en aantallen fixtures, 
 - Het verlaten van de runtimebediening vraagt bevestiging: een zelfstandige sessie kan blijven uitzenden; een gekoppelde WAV wordt ontkoppeld en de bijbehorende uitvoer uitgeschakeld. Een terugkeerwaarschuwing voorkomt dat simulatie-Blackout wordt verward met runtime-Blackout. Gebruik Stop in de livesessie om die sessie te beëindigen.
 
 Op smallere schermen stapelen de werkvlakken. Op brede schermen combineert de Lookstudio selectie, preview en editor naast elkaar. Sluiten van een zijpaneel wist geen concepten; Escape gebruikt dezelfde sluitbeveiliging als de knop.
+
 # Runtime als eigen werkruimte
 
 Technische proefpanelen zijn niet meer in de applicatie gemonteerd: DMX-inspectie en de autonome runtimeproef blijven interne ontwikkel-/testhulpmiddelen. Gewone bediening gebruikt de livesessie. Runtime toont één ingeklapte sectie **Probleem oplossen** voor lifecyclelogging en versie-informatie. Handmatige statuscontroles verschijnen alleen als **Opnieuw proberen** bij fouten; de bestaande polling blijft automatisch. Live toont geen ruwe beat-/frametellers. Patch, DMX-bestemmingen, starten/stoppen, WING en foutmeldingen blijven toegankelijk; de AI-aanvraag/antwoordinspectie blijft afzonderlijk behouden.

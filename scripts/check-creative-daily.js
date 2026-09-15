@@ -1,10 +1,17 @@
 // Dedicated browser profile only. Uses real IndexedDB; never touches physical output.
-async (page) => {
-  const assert = (ok, message) => { if (!ok) throw new Error(message) }
-  const errors = [], outputs = []
-  page.on('pageerror', error => errors.push(error.message))
-  page.on('request', request => { if (request.url().includes('/output/')) outputs.push(request.url()) })
-  await page.addInitScript(() => { window.confirm = () => true })
+;async (page) => {
+  const assert = (ok, message) => {
+    if (!ok) throw new Error(message)
+  }
+  const errors = [],
+    outputs = []
+  page.on('pageerror', (error) => errors.push(error.message))
+  page.on('request', (request) => {
+    if (request.url().includes('/output/')) outputs.push(request.url())
+  })
+  await page.addInitScript(() => {
+    window.confirm = () => true
+  })
   await page.setViewportSize({ width: 1440, height: 1000 })
   await page.goto('http://127.0.0.1:5173')
   await page.getByRole('button', { name: '2 · Ontwerp & repetitie', exact: true }).click()
@@ -33,7 +40,7 @@ async (page) => {
   const tourA = dialog.locator('article').filter({ has: page.getByRole('heading', { name: 'Tour A', exact: true }) })
   await tourA.getByRole('button', { name: 'Openen', exact: true }).click()
   await dialog.waitFor({ state: 'hidden' })
-  assert(await page.getByRole('heading', { name: 'Tour A', exact: true }).count() === 1, 'Named snapshot opened')
+  assert((await page.getByRole('heading', { name: 'Tour A', exact: true }).count()) === 1, 'Named snapshot opened')
   await open()
   await dialog.getByRole('heading', { name: /^Herstelplaats ·/ }).waitFor()
   const tourB = dialog.locator('article').filter({ has: page.getByRole('heading', { name: 'Tour B', exact: true }) })
@@ -44,29 +51,54 @@ async (page) => {
   await dialog.getByRole('heading', { name: 'Clubtour', exact: true }).waitFor()
   await dialog.screenshot({ path: 'output/playwright/show-library-desktop.png' })
   await page.setViewportSize({ width: 390, height: 844 })
-  assert(await dialog.evaluate(el => el.scrollWidth <= el.clientWidth + 1), 'Mobile dialog does not overflow')
+  assert(await dialog.evaluate((el) => el.scrollWidth <= el.clientWidth + 1), 'Mobile dialog does not overflow')
   await dialog.screenshot({ path: 'output/playwright/show-library-mobile.png' })
   await page.keyboard.press('Escape')
-  assert(await page.getByRole('button', { name: 'Bibliotheek & versies', exact: true }).evaluate(el => el === document.activeElement), 'Escape restores trigger focus')
-  await page.reload(); await open()
+  assert(
+    await page
+      .getByRole('button', { name: 'Bibliotheek & versies', exact: true })
+      .evaluate((el) => el === document.activeElement),
+    'Escape restores trigger focus',
+  )
+  await page.reload()
+  await open()
   await dialog.getByRole('heading', { name: 'Clubtour', exact: true }).waitFor()
   await page.keyboard.press('Escape')
   // Seed one earlier snapshot to exercise parent version restoration without WebGL timing in this fixture.
   await page.evaluate(async () => {
     const { createVersion, createShowPackage } = await import('/src/show-package.ts')
     const show = JSON.parse(localStorage.getItem('lightlab-active-package-v1')).show
-    localStorage.setItem('lightlab-active-package-v1', JSON.stringify(createShowPackage(show, [createVersion({ ...show, name: 'Vorige tour' }, 'Voor repetitie')])))
+    localStorage.setItem(
+      'lightlab-active-package-v1',
+      JSON.stringify(createShowPackage(show, [createVersion({ ...show, name: 'Vorige tour' }, 'Voor repetitie')])),
+    )
   })
-  await page.reload(); await open()
+  await page.reload()
+  await open()
   await dialog.getByRole('button', { name: /Versies van huidige show/ }).click()
   await dialog.getByRole('button', { name: 'Herstellen', exact: true }).click()
   await dialog.getByText('Versie hersteld;', { exact: false }).waitFor()
   const restored = await page.evaluate(() => JSON.parse(localStorage.getItem('lightlab-active-package-v1')))
-  assert(restored.show.name === 'Vorige tour' && restored.versions.length === 2 && restored.versions[0].show.name === 'Tour A', 'Version restores with previous editor recovery')
-  await dialog.locator('article').filter({ has: page.getByRole('heading', { name: 'Voor repetitie', exact: true }) }).getByRole('button', { name: 'Verwijderen', exact: true }).click()
+  assert(
+    restored.show.name === 'Vorige tour' &&
+      restored.versions.length === 2 &&
+      restored.versions[0].show.name === 'Tour A',
+    'Version restores with previous editor recovery',
+  )
+  await dialog
+    .locator('article')
+    .filter({ has: page.getByRole('heading', { name: 'Voor repetitie', exact: true }) })
+    .getByRole('button', { name: 'Verwijderen', exact: true })
+    .click()
   await dialog.getByText('Versie verwijderd.', { exact: false }).waitFor()
-  assert(await page.evaluate(() => JSON.parse(localStorage.getItem('lightlab-active-package-v1')).versions.length) === 1, 'Explicit version deletion persisted')
+  assert(
+    (await page.evaluate(() => JSON.parse(localStorage.getItem('lightlab-active-package-v1')).versions.length)) === 1,
+    'Explicit version deletion persisted',
+  )
   await page.keyboard.press('Escape')
-  assert(errors.length === 0 && outputs.length === 0, `Browser errors/output calls: ${JSON.stringify({ errors, outputs })}`)
+  assert(
+    errors.length === 0 && outputs.length === 0,
+    `Browser errors/output calls: ${JSON.stringify({ errors, outputs })}`,
+  )
   return 'Creative regie, four roles, custom safety, native IndexedDB save/open/rename/reload, version restore/delete, desktop/mobile and modal focus passed; no physical output.'
 }

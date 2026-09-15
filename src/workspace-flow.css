@@ -1,27 +1,123 @@
 /* Workspaces share tools without moving their working surface when a drawer opens. */
-.app-shell [hidden] { display: none !important; }
-.app-shell > .workspace-nav { margin-bottom: 12px; padding: 8px 0; }
-.app-shell .topbar { padding-bottom: 12px; }
-.scope-label { font-size: 12px; color: var(--lab-muted); }
-.controller-switch { display: flex; gap: 8px; padding-bottom: 12px; }
-.controller-switch button[aria-pressed=true] { background: #264c81; border-color: #80afff; }
-.live-workspace-body { display: flex; flex-direction: column; gap: 12px; }
-.live-workspace-body > .live-audio-region { order: 2; }
-.live-workspace-body > .workspace, .live-workspace-body > .runtime-live { order: 1; }
-.live-workspace-body .workspace { align-items: start; grid-template-columns: minmax(0, 1.5fr) minmax(340px, 1fr); gap: 20px; }
-.live-workspace-body .control-panel { min-width: 0; max-height: calc(100dvh - 96px); overflow-y: auto; position: sticky; top: 78px; scrollbar-width: thin; scrollbar-color: #46576d transparent; }
-.live-workspace-body .control-panel .live-surface { margin: 0; }
-.live-workspace-body .live-stage-column .stage-panel { position: sticky; top: 78px; }
-.audio-studio-live { margin: 0; padding: 12px 16px; }
-.audio-studio-live header { margin: 0; }
-.audio-compact-heading { display: flex; gap: 12px; align-items: center; justify-content: space-between; }
-.audio-compact-heading strong { overflow-wrap: anywhere; }
-.audio-studio-live audio { max-width: 520px; }
-.audio-input-settings { border: 1px solid var(--lab-line); padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; }
-.audio-input-settings .audio-settings { max-width: 600px; }
-.audio-studio:not(.audio-studio-live) .audio-detail-controls { border: 0; padding: 0; }
-.audio-studio:not(.audio-studio-live) .audio-detail-controls > summary { display: none; }
-.side-panel .show-regie { margin: 0; }
-.side-panel .show-library { border: 0; padding: 0; }
-@media(max-width: 1000px) { .live-workspace-body .workspace { grid-template-columns: minmax(0,1fr); }.live-workspace-body .control-panel { max-height: none; position: static; }.live-workspace-body .live-stage-column .stage-panel { position: relative; top: 0; } }
-@media(max-width: 600px) { .app-shell .topbar { gap: 8px; } .audio-compact-heading { align-items: flex-start; } .audio-compact-heading button { flex-shrink: 0; } }
+.app-shell [hidden] {
+  display: none !important;
+}
+.app-shell > .workspace-nav {
+  margin-bottom: 12px;
+  padding: 8px 0;
+}
+.app-shell .topbar {
+  padding-bottom: 12px;
+}
+.scope-label {
+  font-size: 12px;
+  color: var(--lab-muted);
+}
+.controller-switch {
+  display: flex;
+  gap: 8px;
+  padding-bottom: 12px;
+}
+.controller-switch button[aria-pressed='true'] {
+  background: #264c81;
+  border-color: #80afff;
+}
+.live-workspace-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.live-workspace-body > .live-audio-region {
+  order: 2;
+}
+.live-workspace-body > .workspace,
+.live-workspace-body > .runtime-live {
+  order: 1;
+}
+.live-workspace-body .workspace {
+  align-items: start;
+  grid-template-columns: minmax(0, 1.5fr) minmax(340px, 1fr);
+  gap: 20px;
+}
+.live-workspace-body .control-panel {
+  min-width: 0;
+  max-height: calc(100dvh - 96px);
+  overflow-y: auto;
+  position: sticky;
+  top: 78px;
+  scrollbar-width: thin;
+  scrollbar-color: #46576d transparent;
+}
+.live-workspace-body .control-panel .live-surface {
+  margin: 0;
+}
+.live-workspace-body .live-stage-column .stage-panel {
+  position: sticky;
+  top: 78px;
+}
+.audio-studio-live {
+  margin: 0;
+  padding: 12px 16px;
+}
+.audio-studio-live header {
+  margin: 0;
+}
+.audio-compact-heading {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+.audio-compact-heading strong {
+  overflow-wrap: anywhere;
+}
+.audio-studio-live audio {
+  max-width: 520px;
+}
+.audio-input-settings {
+  border: 1px solid var(--lab-line);
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+.audio-input-settings .audio-settings {
+  max-width: 600px;
+}
+.audio-studio:not(.audio-studio-live) .audio-detail-controls {
+  border: 0;
+  padding: 0;
+}
+.audio-studio:not(.audio-studio-live) .audio-detail-controls > summary {
+  display: none;
+}
+.side-panel .show-regie {
+  margin: 0;
+}
+.side-panel .show-library {
+  border: 0;
+  padding: 0;
+}
+@media (max-width: 1000px) {
+  .live-workspace-body .workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .live-workspace-body .control-panel {
+    max-height: none;
+    position: static;
+  }
+  .live-workspace-body .live-stage-column .stage-panel {
+    position: relative;
+    top: 0;
+  }
+}
+@media (max-width: 600px) {
+  .app-shell .topbar {
+    gap: 8px;
+  }
+  .audio-compact-heading {
+    align-items: flex-start;
+  }
+  .audio-compact-heading button {
+    flex-shrink: 0;
+  }
+}

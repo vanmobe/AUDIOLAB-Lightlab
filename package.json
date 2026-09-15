@@ -15,6 +15,9 @@
     "test:launcher": "node --test scripts/local-launcher.test.mjs scripts/distribution.test.mjs scripts/runtime-manager.test.mjs",
     "test:runtime": "dotnet run --project runtime-tests -c Release",
     "test": "npm run test:frontend && npm run test:launcher",
+    "typecheck": "tsc -b --pretty false",
+    "format:check": "prettier --check . --ignore-unknown",
+    "format:write": "prettier --write . --ignore-unknown",
     "verify": "npm test && npm run build && npm run test:runtime"
   },
   "engines": {
@@ -31,6 +34,7 @@
     "@types/react": "^19.1.12",
     "@types/react-dom": "^19.1.9",
     "@vitejs/plugin-react": "^5.0.2",
+    "prettier": "^3.9.6",
     "typescript": "^5.9.2",
     "vite": "^7.1.7",
     "vitest": "^4.1.11"

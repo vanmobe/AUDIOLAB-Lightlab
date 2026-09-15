@@ -19,7 +19,14 @@ function text(value: unknown, path: string, allowEmpty = false): string {
   return value
 }
 function number(value: unknown, path: string, min: number, max: number, integer = false) {
-  if (typeof value !== 'number' || !Number.isFinite(value) || value < min || value > max || (integer && !Number.isInteger(value))) invalid(path)
+  if (
+    typeof value !== 'number' ||
+    !Number.isFinite(value) ||
+    value < min ||
+    value > max ||
+    (integer && !Number.isInteger(value))
+  )
+    invalid(path)
 }
 function choice(value: unknown, path: string, choices: string[]) {
   if (typeof value !== 'string' || !choices.includes(value)) invalid(path)
@@ -55,7 +62,11 @@ export function assertShowDocument(value: unknown): asserts value is ShowDocumen
   const colors = records(show.colorProfiles, 'colorProfiles', MAX_SHOW_ITEMS)
   const programs = records(show.programs, 'programs', MAX_SHOW_ITEMS)
   const looks = records(show.looks, 'looks', MAX_SHOW_ITEMS)
-  if (show.regie !== undefined) assertShowRegie(show.regie, groups.map(group => group.id as string))
+  if (show.regie !== undefined)
+    assertShowRegie(
+      show.regie,
+      groups.map((group) => group.id as string),
+    )
   if (show.bandMembers !== undefined) {
     for (const [index, member] of records(show.bandMembers, 'bandMembers', 16).entries()) {
       text(member.name, `bandMembers.${index}.name`)
@@ -64,7 +75,11 @@ export function assertShowDocument(value: unknown): asserts value is ShowDocumen
     }
   }
   if (show.bandProfile !== undefined) {
-    try { validateBandProfile(show.bandProfile) } catch { invalid('bandProfile') }
+    try {
+      validateBandProfile(show.bandProfile)
+    } catch {
+      invalid('bandProfile')
+    }
   }
   for (const [index, group] of groups.entries()) {
     text(group.name, `groups.${index}.name`)
@@ -93,17 +108,26 @@ export function assertShowDocument(value: unknown): asserts value is ShowDocumen
   for (const [index, color] of colors.entries()) {
     text(color.name, `colorProfiles.${index}.name`)
     for (const field of ['primary', 'secondary', 'accent', 'white']) {
-      if (!/^#[a-f\d]{6}$/i.test(text(color[field], `colorProfiles.${index}.${field}`))) invalid(`colorProfiles.${index}.${field}`)
+      if (!/^#[a-f\d]{6}$/i.test(text(color[field], `colorProfiles.${index}.${field}`)))
+        invalid(`colorProfiles.${index}.${field}`)
     }
     number(color.intensityLimit, `colorProfiles.${index}.intensityLimit`, 0, 1)
   }
   for (const [index, program] of programs.entries()) {
     const path = `programs.${index}`
     text(program.name, `${path}.name`)
-    choice(program.effect, `${path}.effect`, animationEffects.map(effect => effect.id))
+    choice(
+      program.effect,
+      `${path}.effect`,
+      animationEffects.map((effect) => effect.id),
+    )
     number(program.rateBeats, `${path}.rateBeats`, 0.01, 1024)
     if (program.pattern !== undefined) {
-      try { validatePattern(program.pattern) } catch { invalid(`${path}.pattern`) }
+      try {
+        validatePattern(program.pattern)
+      } catch {
+        invalid(`${path}.pattern`)
+      }
     }
     reference(program.defaultColorProfileId, `${path}.defaultColorProfileId`, colors)
     if (!Array.isArray(program.targetGroupIds) || program.targetGroupIds.length > 256) invalid(`${path}.targetGroupIds`)
@@ -127,7 +151,8 @@ export function assertShowDocument(value: unknown): asserts value is ShowDocumen
         choice(layer.mode, `${layerPath}.mode`, ['animation', 'static', 'off'])
         number(layer.intensity, `${layerPath}.intensity`, 0, 1)
         // Legacy program durations must remain valid when captured on the group.
-        if (layer.rateBeats !== undefined && layer.rateBeats !== null) number(layer.rateBeats, `${layerPath}.rateBeats`, .01, 1024)
+        if (layer.rateBeats !== undefined && layer.rateBeats !== null)
+          number(layer.rateBeats, `${layerPath}.rateBeats`, 0.01, 1024)
         if (layer.offsetBeats !== undefined) number(layer.offsetBeats, `${layerPath}.offsetBeats`, -64, 64)
         if (layer.mode === 'animation') reference(layer.programId, `${layerPath}.programId`, programs)
         else if (layer.programId !== null) invalid(`${layerPath}.programId (moet null zijn)`)
@@ -142,7 +167,8 @@ export function assertShowDocument(value: unknown): asserts value is ShowDocumen
   if (surface.bankNames !== undefined) {
     const names = object(surface.bankNames, 'controlSurface.bankNames')
     for (const [key, value] of Object.entries(names)) {
-      if (!/^(?:[1-9]|[1-5][0-9]|6[0-4])$/.test(key) || typeof value !== 'string' || !value.trim() || value.length > 80) invalid('controlSurface.bankNames')
+      if (!/^(?:[1-9]|[1-5][0-9]|6[0-4])$/.test(key) || typeof value !== 'string' || !value.trim() || value.length > 80)
+        invalid('controlSurface.bankNames')
     }
   }
   const assignedSlots = new Set<string>()
@@ -153,10 +179,13 @@ export function assertShowDocument(value: unknown): asserts value is ShowDocumen
     if (binding.targetId !== undefined) text(binding.targetId, `${path}.targetId`)
     if (binding.action === 'look') reference(binding.targetId, `${path}.targetId`, looks)
     if (binding.action === 'group-intensity') reference(binding.targetId, `${path}.targetId`, groups)
-    if (binding.action === 'color-lock' && binding.targetId !== undefined) reference(binding.targetId, `${path}.targetId`, colors)
-    if (binding.action === 'mode') choice(binding.targetId, `${path}.targetId`, ['automation', 'static', 'safety', 'blackout'])
+    if (binding.action === 'color-lock' && binding.targetId !== undefined)
+      reference(binding.targetId, `${path}.targetId`, colors)
+    if (binding.action === 'mode')
+      choice(binding.targetId, `${path}.targetId`, ['automation', 'static', 'safety', 'blackout'])
     if (binding.slot !== undefined) {
-      if (!isControlSlot(binding.slot) || !canAssignBinding(binding as unknown as ControlBinding, binding.slot)) invalid(`${path}.slot`)
+      if (!isControlSlot(binding.slot) || !canAssignBinding(binding as unknown as ControlBinding, binding.slot))
+        invalid(`${path}.slot`)
       const key = slotKey(binding.slot)
       if (assignedSlots.has(key)) invalid(`${path}.slot (dubbel)`)
       assignedSlots.add(key)
@@ -175,7 +204,11 @@ export function assertShowDocument(value: unknown): asserts value is ShowDocumen
 export function parseShowDocument(raw: string): ShowDocument {
   if (raw.length > MAX_SHOW_JSON_LENGTH) invalid('bestandsgrootte (maximaal 2 miljoen tekens)')
   let value: unknown
-  try { value = JSON.parse(raw) } catch { invalid('JSON') }
+  try {
+    value = JSON.parse(raw)
+  } catch {
+    invalid('JSON')
+  }
   assertShowDocument(value)
   return value
 }

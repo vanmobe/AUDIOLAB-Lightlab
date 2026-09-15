@@ -6,7 +6,14 @@ import { initialShow } from './seed'
 import { resolveLookLayers, type RuntimeMode } from './domain'
 
 function render(controls = emptyLiveControls(), mode: RuntimeMode = 'automation', show = initialShow) {
-  return renderToStaticMarkup(<LiveGroupControls show={show} state={{ mode, activeLookId: show.activeLookId }} controls={controls} onChange={() => {}} />)
+  return renderToStaticMarkup(
+    <LiveGroupControls
+      show={show}
+      state={{ mode, activeLookId: show.activeLookId }}
+      controls={controls}
+      onChange={() => {}}
+    />,
+  )
 }
 
 describe('live group controls', () => {
@@ -36,19 +43,24 @@ describe('live group controls', () => {
     expect(commonLayerValue([{ ...layers[0], colorProfileId: 'warm' }, layers[1]], 'colorProfileId')).toBe('__mixed__')
   })
 
-  it.each(['blackout', 'safety', 'static'] as const)('shows retained edits notice during %s without callbacks', mode => {
-    const controls = updateLiveGroups(initialShow, emptyLiveControls(), 'front', { intensity: 0.4 })
-    const html = render(controls, mode)
-    expect(html).toContain('deze bediening hervat de show niet')
-    expect(html).toContain('Live aangepast')
-    expect(html).toContain('40%')
-  })
+  it.each(['blackout', 'safety', 'static'] as const)(
+    'shows retained edits notice during %s without callbacks',
+    (mode) => {
+      const controls = updateLiveGroups(initialShow, emptyLiveControls(), 'front', { intensity: 0.4 })
+      const html = render(controls, mode)
+      expect(html).toContain('deze bediening hervat de show niet')
+      expect(html).toContain('Live aangepast')
+      expect(html).toContain('40%')
+    },
+  )
 
   it('handles no Looks or groups without bogus mixed ranges', () => {
     const noLooks = render(emptyLiveControls(), 'automation', { ...initialShow, looks: [] })
     expect(noLooks).toContain('Maak eerst een Look')
     expect(noLooks).not.toContain('Infinity')
     expect(noLooks).not.toContain('type="range"')
-    expect(render(emptyLiveControls(), 'automation', { ...initialShow, groups: [] })).toContain('Voeg eerst groepen toe')
+    expect(render(emptyLiveControls(), 'automation', { ...initialShow, groups: [] })).toContain(
+      'Voeg eerst groepen toe',
+    )
   })
 })

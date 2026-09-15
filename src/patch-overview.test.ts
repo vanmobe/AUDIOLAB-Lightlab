@@ -4,10 +4,10 @@ import { fixturePatchInfo, patchInputError, routeUniverseError, universeUsage } 
 
 describe('patch overview', () => {
   it('reports both sides of a conflict, without counting the fixture itself', () => {
-    const fixtures = initialShow.fixtures.slice(0, 2).map(f => ({ ...f, patch: { universe: 1, address: 1 } }))
+    const fixtures = initialShow.fixtures.slice(0, 2).map((f) => ({ ...f, patch: { universe: 1, address: 1 } }))
     const show = { ...initialShow, fixtures }
-    expect(fixturePatchInfo(show, fixtures[0]).conflicts.map(f => f.id)).toEqual([fixtures[1].id])
-    expect(fixturePatchInfo(show, fixtures[1]).conflicts.map(f => f.id)).toEqual([fixtures[0].id])
+    expect(fixturePatchInfo(show, fixtures[0]).conflicts.map((f) => f.id)).toEqual([fixtures[1].id])
+    expect(fixturePatchInfo(show, fixtures[1]).conflicts.map((f) => f.id)).toEqual([fixtures[0].id])
     expect(universeUsage(show, 1)).toEqual({ used: 4, free: 508, overlapping: 4 })
   })
   it('counts actual occupied channels rather than the highest patched address', () => {
@@ -20,10 +20,10 @@ describe('patch overview', () => {
     expect(fixturePatchInfo({ ...initialShow, fixtures: [fixture] }, fixture).end).toBeUndefined()
     expect(universeUsage({ ...initialShow, fixtures: [fixture] }, 1).used).toBe(0)
   })
-  it.each(['', '0', '-1', '1.5', 'NaN', '64000'])('rejects invalid universe draft %s without saving it', value => {
+  it.each(['', '0', '-1', '1.5', 'NaN', '64000'])('rejects invalid universe draft %s without saving it', (value) => {
     expect(patchInputError(value, '1', 4)).not.toBe('')
   })
-  it.each(['', '0', '1.2', '510', '513'])('rejects invalid or overflowing 4-channel address %s', value => {
+  it.each(['', '0', '1.2', '510', '513'])('rejects invalid or overflowing 4-channel address %s', (value) => {
     expect(patchInputError('1', value, 4)).not.toBe('')
   })
   it('allows exact universe/channel boundaries', () => {

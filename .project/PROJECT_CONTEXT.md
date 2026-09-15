@@ -113,8 +113,11 @@ Current user priority: continuous sACN/Art-Net show output is now requested and 
 - Node 22.23.1 (`.nvmrc`) and .NET SDK 10.0.103 (`global.json`) are the
   supported development toolchain. `npm run verify` is the required local and
   GitHub CI check: frontend/launcher tests, production web/worker build and
-  .NET runtime contracts. `npm run package:local` is a deliberate host-native
-  release action, not routine validation.
+  .NET runtime contracts. Prettier (`npm run format:check`) and
+  `dotnet format Lightlab.slnx --verify-no-changes --no-restore` enforce the
+  established TypeScript/documentation and C# formatting baselines. `npm run
+package:local` is a deliberate host-native release action, not routine
+  validation.
 - The public source repository is `vanmobe/AUDIOLAB-Lightlab`. GitHub Actions
   `.github/workflows/ci.yml` is the canonical pull-request validation contract.
   GitHub Project automation is not configured; add

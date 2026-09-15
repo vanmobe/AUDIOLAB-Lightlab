@@ -1,11 +1,26 @@
 import { describe, expect, it } from 'vitest'
 import * as THREE from 'three'
-import { assertSimulationBudget, StageSimulator, beamThrow, createBandMemberView, createFixtureView, updateFixtureView } from './simulator'
+import {
+  assertSimulationBudget,
+  StageSimulator,
+  beamThrow,
+  createBandMemberView,
+  createFixtureView,
+  updateFixtureView,
+} from './simulator'
 import { initialShow } from './seed'
 import { assertShowDocument } from './show-validation'
 import type { FixtureDeployment } from './domain'
 
-const fixture: FixtureDeployment = { id: 'front', name: 'Front', profileId: 'varytec-theater-spot-100', modeId: '2ch', groupId: 'front', position: [0, 3, 3], aim: [0, 0, -2] }
+const fixture: FixtureDeployment = {
+  id: 'front',
+  name: 'Front',
+  profileId: 'varytec-theater-spot-100',
+  modeId: '2ch',
+  groupId: 'front',
+  position: [0, 3, 3],
+  aim: [0, 0, -2],
+}
 
 describe('simulation resource budget', () => {
   it('accepts the initial rig and includes grouped visual bar heads in its light budget', () => {
@@ -30,7 +45,16 @@ describe('simulation resource budget', () => {
 describe('fixture rendering', () => {
   it('renders each head from segment output while retaining aggregate-only compatibility', () => {
     const view = createFixtureView(fixture, 0)
-    const source = { fixtureId: fixture.id, intensity: .5, color: '#ffffff', haze: 0, segments: [{ intensity: 0, color: '#ff0000' }, { intensity: 1, color: '#00ff00' }] }
+    const source = {
+      fixtureId: fixture.id,
+      intensity: 0.5,
+      color: '#ffffff',
+      haze: 0,
+      segments: [
+        { intensity: 0, color: '#ff0000' },
+        { intensity: 1, color: '#00ff00' },
+      ],
+    }
     updateFixtureView(view, source, 0, 0)
     expect(view.light.intensity).toBe(0)
     updateFixtureView(view, source, 0, 1)
@@ -70,7 +94,7 @@ describe('fixture rendering', () => {
     expect(bounds.min.y).toBeCloseTo(0)
     expect(bounds.max.y).toBeCloseTo(1.77)
     expect(person.children.length).toBe(8)
-    person.traverse(part => {
+    person.traverse((part) => {
       if (part instanceof THREE.Mesh) {
         expect(part.material).toBeInstanceOf(THREE.MeshStandardMaterial)
         expect(part.material.emissive.getHex()).toBe(0)
@@ -78,14 +102,23 @@ describe('fixture rendering', () => {
     })
   })
   it('aims every bar segment parallel in direction mode while retaining shared targets in legacy mode', () => {
-    const bar = { ...fixture, visualSegments: 4, aim: [0, 9, 3] as [number, number, number], aimMode: 'direction' as const }
+    const bar = {
+      ...fixture,
+      visualSegments: 4,
+      aim: [0, 9, 3] as [number, number, number],
+      aimMode: 'direction' as const,
+    }
     for (const segment of [0, 1, 2, 3]) {
       const view = createFixtureView(bar, segment)
       expect(view.light.target.position.clone().sub(view.light.position).toArray()).toEqual([0, 6, 0])
       expect(createFixtureView({ ...bar, aimMode: 'target' }, segment).light.target.position.toArray()).toEqual(bar.aim)
     }
   })
-  it.each([[0, 0, -2], [0, 0, 5], [0, 3, 3]])('anchors the beam tip to the lamp and directs its base toward (%s, %s, %s)', (...aim) => {
+  it.each([
+    [0, 0, -2],
+    [0, 0, 5],
+    [0, 3, 3],
+  ])('anchors the beam tip to the lamp and directs its base toward (%s, %s, %s)', (...aim) => {
     const view = createFixtureView({ ...fixture, aim: aim as [number, number, number] }, 0)
     const height = (view.beam.geometry as THREE.ConeGeometry).parameters.height
     const tip = new THREE.Vector3(0, height / 2, 0).applyQuaternion(view.beam.quaternion).add(view.beam.position)
@@ -119,7 +152,9 @@ describe('fixture rendering', () => {
     expect(view.beam.material.depthWrite).toBe(false)
     expect(view.beam.material.customProgramCacheKey()).toBe('lightlab-soft-beam-smoke-v2')
     const person = createBandMemberView({ id: 'one', name: 'Zang', position: [0, 0, 0] })
-    person.traverse(object => { if (object instanceof THREE.Mesh) expect(object.castShadow && object.receiveShadow).toBe(true) })
+    person.traverse((object) => {
+      if (object instanceof THREE.Mesh) expect(object.castShadow && object.receiveShadow).toBe(true)
+    })
     updateFixtureView(view, { fixtureId: fixture.id, intensity: 0, color: '#fff1d6', haze: 1 }, 1)
     expect(view.beam.visible).toBe(false)
     expect(view.light.intensity).toBe(0)

@@ -44,7 +44,7 @@ Bodies require JSON with exact property names, required fields and numeric value
 `POST /playback/start`, maximum2MiB, including chunked requests:
 
 ```json
-{"version":1,"show":{},"bpm":120,"lookId":"existing-look-id"}
+{ "version": 1, "show": {}, "bpm": 120, "lookId": "existing-look-id" }
 ```
 
 Replace the illustrative empty `show` with a complete valid ShowDocument. `bpm` is finite30–240; `lookId` must identify a Look in that snapshot. An active session causes409; there is no implicit replacement.
@@ -54,7 +54,19 @@ Replace the illustrative empty `show` with a complete valid ShowDocument. `bpm` 
 `GET /playback/status`, and successful Start/Command, return:
 
 ```json
-{"version":1,"sessionId":null,"status":"idle","mode":"automation","lookId":null,"bpm":120,"atBeats":0,"frameCount":0,"universeCount":0,"outputSent":false,"error":null}
+{
+  "version": 1,
+  "sessionId": null,
+  "status": "idle",
+  "mode": "automation",
+  "lookId": null,
+  "bpm": 120,
+  "atBeats": 0,
+  "frameCount": 0,
+  "universeCount": 0,
+  "outputSent": false,
+  "error": null
+}
 ```
 
 Status is `idle`, `starting`, `running`, `stopped` or `faulted`. Session IDs are server-generated and change on restart. Beat/frame count describe sampled runtime progress, not audio synchronization or network delivery. `error` contains authored diagnostic text, never raw worker stderr. Reconnecting clients should read this endpoint before attempting Start again.
@@ -64,7 +76,7 @@ Status is `idle`, `starting`, `running`, `stopped` or `faulted`. Session IDs are
 `POST /playback/command`, maximum1MiB. Send one operation-specific field, none for Stop, or the complete Live-state envelope described below:
 
 ```json
-{"version":1,"sessionId":"current-session-id","command":"look","lookId":"existing-look-id"}
+{ "version": 1, "sessionId": "current-session-id", "command": "look", "lookId": "existing-look-id" }
 ```
 
 Other forms: `command:"bpm", bpm:30..240`; `command:"mode", mode:"automation"|"static"|"safety"|"blackout"`; `command:"stop"`. Fields belonging to other operations are rejected. Unknown Look IDs do not silently fall back.

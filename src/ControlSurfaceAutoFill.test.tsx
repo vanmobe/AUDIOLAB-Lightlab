@@ -6,22 +6,31 @@ import type { ControlSurfaceLayout, ShowDocument } from './domain'
 
 // Real event handlers across rerenders; browser QA covers layout/focus and parent undo integration.
 const hooks = vi.hoisted(() => ({ values: [] as unknown[], cursor: 0 }))
-vi.mock('react', async original => ({
-  ...await original<typeof import('react')>(),
+vi.mock('react', async (original) => ({
+  ...(await original<typeof import('react')>()),
   useMemo: (factory: () => unknown) => factory(),
   useState: (initial: unknown) => {
     const index = hooks.cursor++
     if (!(index in hooks.values)) hooks.values[index] = typeof initial === 'function' ? initial() : initial
-    return [hooks.values[index], (value: unknown) => { hooks.values[index] = typeof value === 'function' ? value(hooks.values[index]) : value }]
+    return [
+      hooks.values[index],
+      (value: unknown) => {
+        hooks.values[index] = typeof value === 'function' ? value(hooks.values[index]) : value
+      },
+    ]
   },
 }))
 interface Props {
-  children?: ReactNode; 'aria-label'?: string; disabled?: boolean
+  children?: ReactNode
+  'aria-label'?: string
+  disabled?: boolean
   onClick?: () => void
   onChange?: (event: { target: { value: string; checked: boolean } }) => void
 }
 function text(node: ReactNode): string {
-  return Children.toArray(node).map(child => isValidElement<Props>(child) ? text(child.props.children) : String(child)).join('')
+  return Children.toArray(node)
+    .map((child) => (isValidElement<Props>(child) ? text(child.props.children) : String(child)))
+    .join('')
 }
 function find(node: ReactNode, match: (props: Props) => boolean): Props | undefined {
   for (const child of Children.toArray(node)) {
@@ -32,14 +41,28 @@ function find(node: ReactNode, match: (props: Props) => boolean): Props | undefi
   }
 }
 function session(profileId = 'wing-rack') {
-  hooks.values = []; hooks.cursor = 0
+  hooks.values = []
+  hooks.cursor = 0
   let show: ShowDocument = structuredClone(initialShow)
   show.controlSurface = { profileId, bindings: [] }
-  const apply = vi.fn((_surface: ControlSurfaceLayout, _firstBank: number) => true), close = vi.fn()
-  const render = () => { hooks.cursor = 0; return ControlSurfaceAutoFill({ show, initialBank: 1, onApply: apply, onClose: close }) }
-  const button = (name: string) => find(render(), p => !!p.onClick && text(p.children) === name)
-  const control = (name: string) => find(render(), p => p['aria-label'] === name)!
-  return { render, button, control, apply, close, changeShow: () => { show = { ...show, name: 'Modified' } } }
+  const apply = vi.fn((_surface: ControlSurfaceLayout, _firstBank: number) => true),
+    close = vi.fn()
+  const render = () => {
+    hooks.cursor = 0
+    return ControlSurfaceAutoFill({ show, initialBank: 1, onApply: apply, onClose: close })
+  }
+  const button = (name: string) => find(render(), (p) => !!p.onClick && text(p.children) === name)
+  const control = (name: string) => find(render(), (p) => p['aria-label'] === name)!
+  return {
+    render,
+    button,
+    control,
+    apply,
+    close,
+    changeShow: () => {
+      show = { ...show, name: 'Modified' }
+    },
+  }
 }
 describe('automatic bank fill confirmation flow', () => {
   it('previews without applying and applies only after explicit acceptance', () => {
@@ -60,10 +83,20 @@ describe('automatic bank fill confirmation flow', () => {
     view.control('Vaste groep draaiknop 1').onChange!({ target: { value: 'wash', checked: false } })
     view.button('Bekijk bankindeling')!.onClick!()
     view.button('Pas bankindeling toe')!.onClick!()
-    expect(view.apply.mock.calls[0][0]).toMatchObject({ bindings: expect.arrayContaining([
-      expect.objectContaining({ action: 'group-intensity', targetId: 'wash', slot: { bank: 1, kind: 'rotary', index: 1 } }),
-      expect.objectContaining({ action: 'group-intensity', targetId: 'wash', slot: { bank: 3, kind: 'rotary', index: 1 } }),
-    ]) })
+    expect(view.apply.mock.calls[0][0]).toMatchObject({
+      bindings: expect.arrayContaining([
+        expect.objectContaining({
+          action: 'group-intensity',
+          targetId: 'wash',
+          slot: { bank: 1, kind: 'rotary', index: 1 },
+        }),
+        expect.objectContaining({
+          action: 'group-intensity',
+          targetId: 'wash',
+          slot: { bank: 3, kind: 'rotary', index: 1 },
+        }),
+      ]),
+    })
   })
   it('blocks stale proposals even if the disabled acceptance handler is invoked', () => {
     const view = session()

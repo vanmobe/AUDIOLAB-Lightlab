@@ -9,5 +9,5 @@ export function validPreviewBpm(value: string): number | undefined {
 /** Integrate elapsed time: changing BPM must not move the already-reached musical phase. */
 export function advancePreviewBeat(beat: number, elapsedMs: number, bpm: number): number {
   if (!Number.isFinite(elapsedMs) || elapsedMs <= 0 || validPreviewBpm(String(bpm)) === undefined) return beat
-  return beat + elapsedMs * bpm / 60_000
+  return beat + (elapsedMs * bpm) / 60_000
 }

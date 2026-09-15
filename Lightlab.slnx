@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/runtime-tests/">
+    <Project Path="runtime-tests/Lightflow.AiContractTests.csproj" />
+  </Folder>
+  <Folder Name="/runtime/">
+    <Project Path="runtime/Lightflow.Runtime.csproj" />
+  </Folder>
+</Solution>

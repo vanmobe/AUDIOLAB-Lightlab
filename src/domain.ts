@@ -73,13 +73,21 @@ export const animationEffects = [
   { id: 'static', label: 'Stabiel', description: 'Vaste verlichting zonder beweging.' },
   { id: 'pulse', label: 'Pulse', description: 'Alle doelspots ademen samen in intensiteit.' },
   { id: 'chase', label: 'Afwisselend', description: 'Twee sets spots wisselen elkaar af.' },
-  { id: 'sequence', label: 'Looplicht', description: 'Eén lichtpunt loopt van links naar rechts; tempo is een volledige ronde.' },
-  { id: 'random', label: 'Willekeurige spots', description: 'Elke tempo-interval licht een andere, reproduceerbare selectie op.' },
+  {
+    id: 'sequence',
+    label: 'Looplicht',
+    description: 'Eén lichtpunt loopt van links naar rechts; tempo is een volledige ronde.',
+  },
+  {
+    id: 'random',
+    label: 'Willekeurige spots',
+    description: 'Elke tempo-interval licht een andere, reproduceerbare selectie op.',
+  },
   { id: 'sparkle', label: 'Twinkeling', description: 'Verspreide lichtpuntjes lichten kort en zacht op.' },
   { id: 'wave', label: 'Golf', description: 'Een vloeiende intensiteitsgolf beweegt over de doelspots.' },
   { id: 'build', label: 'Opbouw', description: 'De doelspots vullen van links naar rechts en beginnen opnieuw.' },
 ] as const
-export type AnimationEffect = typeof animationEffects[number]['id']
+export type AnimationEffect = (typeof animationEffects)[number]['id']
 
 export interface AutomationProgram {
   id: string
@@ -117,22 +125,38 @@ export interface LookLayer {
 
 export function animationLabel(program: AutomationProgram) {
   if (program.pattern && program.name.trim()) return program.name
-  return animationEffects.find(effect => effect.id === program.effect)?.label ?? program.effect
+  return animationEffects.find((effect) => effect.id === program.effect)?.label ?? program.effect
 }
 
 export function resolveLookLayers(show: ShowDocument, look: Look): LookLayer[] {
-  const legacyProgram = show.programs.find(program => program.id === look.programId)
-  return show.groups.map(group => {
+  const legacyProgram = show.programs.find((program) => program.id === look.programId)
+  return show.groups.map((group) => {
     if (look.layers !== undefined) {
-      const layer = look.layers.find(layer => layer.groupId === group.id)
-      if (!layer) return { groupId: group.id, mode: 'off', programId: null, colorProfileId: null, intensity: 1, rateBeats: 1, offsetBeats: 0 }
-      return { ...layer, rateBeats: layer.rateBeats ?? show.programs.find(program => program.id === layer.programId)?.rateBeats ?? 1, offsetBeats: layer.offsetBeats ?? 0 }
+      const layer = look.layers.find((layer) => layer.groupId === group.id)
+      if (!layer)
+        return {
+          groupId: group.id,
+          mode: 'off',
+          programId: null,
+          colorProfileId: null,
+          intensity: 1,
+          rateBeats: 1,
+          offsetBeats: 0,
+        }
+      return {
+        ...layer,
+        rateBeats: layer.rateBeats ?? show.programs.find((program) => program.id === layer.programId)?.rateBeats ?? 1,
+        offsetBeats: layer.offsetBeats ?? 0,
+      }
     }
     const targeted = legacyProgram?.targetGroupIds.includes(group.id)
     return {
       groupId: group.id,
       mode: !targeted ? 'off' : legacyProgram?.effect === 'static' && !legacyProgram.pattern ? 'static' : 'animation',
-      programId: targeted && legacyProgram && (legacyProgram.effect !== 'static' || legacyProgram.pattern) ? legacyProgram.id : null,
+      programId:
+        targeted && legacyProgram && (legacyProgram.effect !== 'static' || legacyProgram.pattern)
+          ? legacyProgram.id
+          : null,
       colorProfileId: null,
       intensity: 1,
       rateBeats: legacyProgram?.rateBeats ?? 1,
@@ -144,7 +168,7 @@ export function resolveLookLayers(show: ShowDocument, look: Look): LookLayer[] {
 /** Snapshot legacy timing before editing patterns; preserve IDs, targeting and saved history. */
 export function materializeGroupTiming(show: ShowDocument): ShowDocument {
   let changed = false
-  const looks = show.looks.map(look => {
+  const looks = show.looks.map((look) => {
     const layers = resolveLookLayers(show, look)
     if (JSON.stringify(layers) === JSON.stringify(look.layers)) return look
     changed = true
@@ -154,12 +178,38 @@ export function materializeGroupTiming(show: ShowDocument): ShowDocument {
 }
 
 export type ControlActionType = 'look' | 'mode' | 'group-intensity' | 'tap-tempo' | 'color-lock' | 'follow'
-export interface ControlSlot { bank: number; kind: 'button' | 'rotary'; index: number }
-export interface ControlBinding { id: string; label: string; action: ControlActionType; targetId?: string; slot?: ControlSlot }
-export interface ControlSurfaceLayout { profileId: string; bindings: ControlBinding[]; bankNames?: Record<string, string> }
-export interface SyncStrategy { source: 'direct-audio' | 'midi-clock' | 'tap-tempo'; audioDeviceName: string; lightingOffsetMs: number }
-export interface SimulationCamera { position: [number, number, number]; target: [number, number, number]; fov: number }
-export interface BandMember { id: string; name: string; position: [number, number, number] }
+export interface ControlSlot {
+  bank: number
+  kind: 'button' | 'rotary'
+  index: number
+}
+export interface ControlBinding {
+  id: string
+  label: string
+  action: ControlActionType
+  targetId?: string
+  slot?: ControlSlot
+}
+export interface ControlSurfaceLayout {
+  profileId: string
+  bindings: ControlBinding[]
+  bankNames?: Record<string, string>
+}
+export interface SyncStrategy {
+  source: 'direct-audio' | 'midi-clock' | 'tap-tempo'
+  audioDeviceName: string
+  lightingOffsetMs: number
+}
+export interface SimulationCamera {
+  position: [number, number, number]
+  target: [number, number, number]
+  fov: number
+}
+export interface BandMember {
+  id: string
+  name: string
+  position: [number, number, number]
+}
 
 export interface ShowDocument {
   regie?: import('./show-regie').ShowRegie
@@ -236,7 +286,11 @@ export function validateShow(show: ShowDocument, profiles: FixtureProfile[]): Va
     const profile = profiles.find((candidate) => candidate.id === fixture.profileId)
     const mode = profile && getFixtureMode(profile, fixture.modeId)
     if (!profile || !mode) {
-      issues.push({ severity: 'error', path: `fixtures.${fixture.id}`, message: 'Onbekend fixtureprofiel of DMX-modus.' })
+      issues.push({
+        severity: 'error',
+        path: `fixtures.${fixture.id}`,
+        message: 'Onbekend fixtureprofiel of DMX-modus.',
+      })
       continue
     }
     if (mode.configurationWarning) {
@@ -244,37 +298,61 @@ export function validateShow(show: ShowDocument, profiles: FixtureProfile[]): Va
     }
     if (!fixture.patch) continue
     if (fixture.patch.universe < 1 || fixture.patch.address < 1 || fixture.patch.address > 512) {
-      issues.push({ severity: 'error', path: `fixtures.${fixture.id}.patch`, message: 'Universe en DMX-adres moeten geldig zijn.' })
+      issues.push({
+        severity: 'error',
+        path: `fixtures.${fixture.id}.patch`,
+        message: 'Universe en DMX-adres moeten geldig zijn.',
+      })
       continue
     }
     const end = fixture.patch.address + mode.channels - 1
     if (end > 512) {
-      issues.push({ severity: 'error', path: `fixtures.${fixture.id}.patch`, message: 'DMX-modus valt buiten kanaal 512.' })
+      issues.push({
+        severity: 'error',
+        path: `fixtures.${fixture.id}.patch`,
+        message: 'DMX-modus valt buiten kanaal 512.',
+      })
       continue
     }
     const ranges = rangesByUniverse.get(fixture.patch.universe) ?? []
     for (const range of ranges) {
       if (fixture.patch.address <= range.end && end >= range.fixture.patch!.address) {
-        issues.push({ severity: 'error', path: `fixtures.${fixture.id}.patch`, message: `DMX-overlap met ${range.fixture.name}.` })
+        issues.push({
+          severity: 'error',
+          path: `fixtures.${fixture.id}.patch`,
+          message: `DMX-overlap met ${range.fixture.name}.`,
+        })
       }
     }
     ranges.push({ fixture, end })
     rangesByUniverse.set(fixture.patch.universe, ranges)
     if (!mode.verifiedForLiveOutput) {
-      issues.push({ severity: 'warning', path: `fixtures.${fixture.id}.mode`, message: 'DMX-modus is nog niet fysiek geverifieerd.' })
+      issues.push({
+        severity: 'warning',
+        path: `fixtures.${fixture.id}.mode`,
+        message: 'DMX-modus is nog niet fysiek geverifieerd.',
+      })
     }
   }
 
   for (const route of show.routes.filter((candidate) => candidate.enabled)) {
     const duplicates = show.routes.filter((candidate) => candidate.enabled && candidate.universe === route.universe)
     if (duplicates.length > 1) {
-      issues.push({ severity: 'error', path: `routes.${route.id}`, message: `Universe ${route.universe} heeft meer dan één actieve outputroute.` })
+      issues.push({
+        severity: 'error',
+        path: `routes.${route.id}`,
+        message: `Universe ${route.universe} heeft meer dan één actieve outputroute.`,
+      })
     }
   }
 
   for (const profile of show.colorProfiles) {
     if (![profile.primary, profile.secondary, profile.accent, profile.white].every(isValidColor)) {
-      issues.push({ severity: 'error', path: `colorProfiles.${profile.id}`, message: 'Een kleurprofiel bevat een ongeldige hex-kleur.' })
+      issues.push({
+        severity: 'error',
+        path: `colorProfiles.${profile.id}`,
+        message: 'Een kleurprofiel bevat een ongeldige hex-kleur.',
+      })
     }
   }
   return issues
@@ -313,56 +391,93 @@ function patternLevel(effect: AnimationEffect, phase: number, point: number, cou
   const cycle = Math.floor(phase)
   const progress = phase - cycle
   switch (effect) {
-    case 'sequence': return point === Math.min(count - 1, Math.floor(progress * count)) ? 1 : 0
-    case 'build': return point <= Math.min(count - 1, Math.floor(progress * count)) ? 1 : 0
-    case 'wave': return 0.08 + 0.92 * ((1 + Math.cos(2 * Math.PI * (progress - point / count))) / 2) ** 2
+    case 'sequence':
+      return point === Math.min(count - 1, Math.floor(progress * count)) ? 1 : 0
+    case 'build':
+      return point <= Math.min(count - 1, Math.floor(progress * count)) ? 1 : 0
+    case 'wave':
+      return 0.08 + 0.92 * ((1 + Math.cos(2 * Math.PI * (progress - point / count))) / 2) ** 2
     case 'random':
     case 'sparkle': {
-      const selected = point === patternHash(seed, cycle, -1) % count || patternHash(seed, cycle, point) / 2 ** 32 < (effect === 'random' ? .22 : .08)
-      return selected ? effect === 'sparkle' ? Math.sin(Math.PI * progress) ** 4 : 1 : 0
+      const selected =
+        point === patternHash(seed, cycle, -1) % count ||
+        patternHash(seed, cycle, point) / 2 ** 32 < (effect === 'random' ? 0.22 : 0.08)
+      return selected ? (effect === 'sparkle' ? Math.sin(Math.PI * progress) ** 4 : 1) : 0
     }
-    default: return 1
+    default:
+      return 1
   }
 }
 
-export function evaluateFrame(show: ShowDocument, profiles: FixtureProfile[], state: RuntimeState, atBeats: number): EvaluatedFrame {
+export function evaluateFrame(
+  show: ShowDocument,
+  profiles: FixtureProfile[],
+  state: RuntimeState,
+  atBeats: number,
+): EvaluatedFrame {
   if (state.mode === 'blackout') {
-    return { atBeats, mode: state.mode, fixtures: show.fixtures.map((fixture) => ({ fixtureId: fixture.id, intensity: 0, color: '#000000', haze: 0 })) }
+    return {
+      atBeats,
+      mode: state.mode,
+      fixtures: show.fixtures.map((fixture) => ({ fixtureId: fixture.id, intensity: 0, color: '#000000', haze: 0 })),
+    }
   }
   const { look, program: legacyProgram, profile: globalProfile } = selected(show, state)
   const phaseAt = state.mode === 'static' ? (state.heldAtBeats ?? atBeats) : atBeats
   const safetyGroups = new Set(show.regie?.safetyGroupIds ?? ['front'])
   // Safety stays independent of creative layers, including their fixed palettes and intensity.
   const layers = look?.layers !== undefined && state.mode !== 'safety' ? resolveLookLayers(show, look) : undefined
-  const layersByGroup = new Map(layers?.map(layer => [layer.groupId, layer]))
-  const programsById = new Map(show.programs.map(program => [program.id, program]))
+  const layersByGroup = new Map(layers?.map((layer) => [layer.groupId, layer]))
+  const programsById = new Map(show.programs.map((program) => [program.id, program]))
   const patterns = new Map<string, { offsets: Map<string, number>; count: number }>()
   const composedPatterns = new Map<string, Map<string, { offsets: Map<string, number>; count: number }>>()
-  const activePrograms = layers ? show.programs.filter(program => layers.some(layer => layer.mode === 'animation' && layer.programId === program.id)) : legacyProgram ? [legacyProgram] : []
+  const activePrograms = layers
+    ? show.programs.filter((program) =>
+        layers.some((layer) => layer.mode === 'animation' && layer.programId === program.id),
+      )
+    : legacyProgram
+      ? [legacyProgram]
+      : []
   for (const program of activePrograms) {
     if (!program.pattern && ['static', 'pulse', 'chase'].includes(program.effect)) continue
     // Legacy effects share a spatial sequence; recipes use a separate sequence per group below.
-    const targets = new Set(layers ? layers.filter(layer => layer.mode === 'animation' && layer.programId === program.id).map(layer => layer.groupId) : program.targetGroupIds)
-    const ordered = show.fixtures.filter(fixture => targets.has(fixture.groupId) && profiles.find(item => item.id === fixture.profileId)?.kind !== 'hazer')
-      .sort((a, b) => a.position[0] - b.position[0] || a.position[2] - b.position[2] || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
+    const targets = new Set(
+      layers
+        ? layers
+            .filter((layer) => layer.mode === 'animation' && layer.programId === program.id)
+            .map((layer) => layer.groupId)
+        : program.targetGroupIds,
+    )
+    const ordered = show.fixtures
+      .filter(
+        (fixture) =>
+          targets.has(fixture.groupId) && profiles.find((item) => item.id === fixture.profileId)?.kind !== 'hazer',
+      )
+      .sort(
+        (a, b) =>
+          a.position[0] - b.position[0] || a.position[2] - b.position[2] || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0),
+      )
     const offsets = new Map<string, number>()
     let count = 0
     for (const fixture of ordered) {
       offsets.set(fixture.id, count)
-      const definition = profiles.find(item => item.id === fixture.profileId)
+      const definition = profiles.find((item) => item.id === fixture.profileId)
       const mode = definition && getFixtureMode(definition, fixture.modeId)
-      count += mode?.independentHeads ? fixture.visualSegments ?? 1 : 1
+      count += mode?.independentHeads ? (fixture.visualSegments ?? 1) : 1
     }
     patterns.set(program.id, { offsets, count })
     if (program.pattern) {
       const byGroup = new Map<string, { offsets: Map<string, number>; count: number }>()
       for (const fixture of ordered) {
         let spatial = byGroup.get(fixture.groupId)
-        if (!spatial) { spatial = { offsets: new Map(), count: 0 }; byGroup.set(fixture.groupId, spatial) }
+        if (!spatial) {
+          spatial = { offsets: new Map(), count: 0 }
+          byGroup.set(fixture.groupId, spatial)
+        }
         spatial.offsets.set(fixture.id, spatial.count)
-        const definition = profiles.find(item => item.id === fixture.profileId)
+        const definition = profiles.find((item) => item.id === fixture.profileId)
         const mode = definition && getFixtureMode(definition, fixture.modeId)
-        spatial.count += mode?.independentHeads ? fixture.visualSegments ?? 1 : 1
+        spatial.count += mode?.independentHeads ? (fixture.visualSegments ?? 1) : 1
       }
       composedPatterns.set(program.id, byGroup)
     }
@@ -374,32 +489,51 @@ export function evaluateFrame(show: ShowDocument, profiles: FixtureProfile[], st
     mode: state.mode,
     fixtures: show.fixtures.map((fixture, index) => {
       const layer = layersByGroup.get(fixture.groupId)
-      const program = layers ? layer?.mode === 'animation' ? programsById.get(layer.programId!) : undefined : legacyProgram
-      const profile = layer?.colorProfileId ? show.colorProfiles.find(item => item.id === layer.colorProfileId) ?? globalProfile : globalProfile
+      const program = layers
+        ? layer?.mode === 'animation'
+          ? programsById.get(layer.programId!)
+          : undefined
+        : legacyProgram
+      const profile = layer?.colorProfileId
+        ? (show.colorProfiles.find((item) => item.id === layer.colorProfileId) ?? globalProfile)
+        : globalProfile
       const layerLevel = layer?.intensity ?? 1
       const rate = layer?.rateBeats ?? (program?.rateBeats || 1)
       const phase = (phaseAt - (layer?.offsetBeats ?? 0)) / rate
       const pulse = !program?.pattern && program?.effect === 'pulse' ? 0.45 + Math.sin(phase * Math.PI * 2) * 0.35 : 1
-      const pattern = program && (program.pattern ? composedPatterns.get(program.id)?.get(fixture.groupId) : patterns.get(program.id))
+      const pattern =
+        program && (program.pattern ? composedPatterns.get(program.id)?.get(fixture.groupId) : patterns.get(program.id))
       const definition = profiles.find((item) => item.id === fixture.profileId)
       const mode = definition && getFixtureMode(definition, fixture.modeId)
       const group = show.groups.find((item) => item.id === fixture.groupId)
       const isSafetyTarget = safetyGroups.has(fixture.groupId)
       const chaseActive = !!program?.pattern || program?.effect !== 'chase' || (Math.floor(phase) + index) % 2 === 0
       // An empty design is valid while setting up a rig; it must not imply full white output.
-      const isProgramTarget = layers ? !!layer && layer.mode !== 'off' : !!look && !!program && program.targetGroupIds.includes(fixture.groupId)
-      const base = state.mode === 'safety' ? (isSafetyTarget ? 0.8 : 0) : (isProgramTarget ? pulse * (chaseActive ? 1 : 0.28) : 0)
-      const paletteLimit = state.mode === 'safety' ? 1 : profile?.intensityLimit ?? 1
+      const isProgramTarget = layers
+        ? !!layer && layer.mode !== 'off'
+        : !!look && !!program && program.targetGroupIds.includes(fixture.groupId)
+      const base =
+        state.mode === 'safety' ? (isSafetyTarget ? 0.8 : 0) : isProgramTarget ? pulse * (chaseActive ? 1 : 0.28) : 0
+      const paletteLimit = state.mode === 'safety' ? 1 : (profile?.intensityLimit ?? 1)
       coverageCaps.set(fixture.id, isProgramTarget ? clamp(layerLevel * (group?.intensity ?? 1) * paletteLimit) : 0)
       let intensity = clamp(base * layerLevel * (group?.intensity ?? 1) * paletteLimit)
       const color = !mode?.capabilities.includes('rgb')
-        ? definition?.fixedColor ?? '#ffffff'
-        : state.mode === 'safety' ? '#fff1d6' : regieColor(profile, index, show.regie)
+        ? (definition?.fixedColor ?? '#ffffff')
+        : state.mode === 'safety'
+          ? '#fff1d6'
+          : regieColor(profile, index, show.regie)
       let segments: EvaluatedFixture['segments']
       const offset = pattern?.offsets.get(fixture.id)
       if (program && pattern && state.mode !== 'safety' && offset !== undefined) {
-        segments = Array.from({ length: mode?.independentHeads ? fixture.visualSegments ?? 1 : 1 }, (_, segment) => ({
-          intensity: clamp((program.pattern ? evaluatePattern(program.pattern, phase, offset + segment, pattern.count) : patternLevel(program.effect, phase, offset + segment, pattern.count, program.id)) * layerLevel * (group?.intensity ?? 1) * (profile?.intensityLimit ?? 1)),
+        segments = Array.from({ length: mode?.independentHeads ? (fixture.visualSegments ?? 1) : 1 }, (_, segment) => ({
+          intensity: clamp(
+            (program.pattern
+              ? evaluatePattern(program.pattern, phase, offset + segment, pattern.count)
+              : patternLevel(program.effect, phase, offset + segment, pattern.count, program.id)) *
+              layerLevel *
+              (group?.intensity ?? 1) *
+              (profile?.intensityLimit ?? 1),
+          ),
           color: mode?.capabilities.includes('rgb') ? regieColor(profile, offset + segment, show.regie) : color,
         }))
         intensity = segments.reduce((sum, segment) => sum + segment.intensity, 0) / segments.length
@@ -407,7 +541,7 @@ export function evaluateFrame(show: ShowDocument, profiles: FixtureProfile[], st
       return {
         fixtureId: fixture.id,
         intensity,
-        color: segments?.find(segment => segment.intensity > 0)?.color ?? color,
+        color: segments?.find((segment) => segment.intensity > 0)?.color ?? color,
         ...(segments ? { segments } : {}),
         haze: mode?.capabilities.includes('haze') && state.mode === 'automation' ? intensity * 0.15 : 0,
       }

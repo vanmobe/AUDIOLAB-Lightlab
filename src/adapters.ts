@@ -20,7 +20,31 @@ export type RuntimeCommand =
   | { type: 'set-group-intensity'; groupId: string; value: number }
 
 export const wingProfiles = [
-  { id: 'wing-rack', name: 'Behringer WING Rack', rotaryMode: 'relative' as const, banks: 16, buttons: 8, rotaries: 4, buttonColumns: 4 },
-  { id: 'wing-compact', name: 'Behringer WING Compact USER', rotaryMode: 'relative' as const, banks: 1, buttons: 16, rotaries: 0, buttonColumns: 4 },
-  { id: 'wing-full', name: 'Behringer WING', rotaryMode: 'relative' as const, banks: 16, buttons: 8, rotaries: 4, buttonColumns: 4 },
+  {
+    id: 'wing-rack',
+    name: 'Behringer WING Rack',
+    rotaryMode: 'relative' as const,
+    banks: 16,
+    buttons: 8,
+    rotaries: 4,
+    buttonColumns: 4,
+  },
+  {
+    id: 'wing-compact',
+    name: 'Behringer WING Compact USER',
+    rotaryMode: 'relative' as const,
+    banks: 1,
+    buttons: 16,
+    rotaries: 0,
+    buttonColumns: 4,
+  },
+  {
+    id: 'wing-full',
+    name: 'Behringer WING',
+    rotaryMode: 'relative' as const,
+    banks: 16,
+    buttons: 8,
+    rotaries: 4,
+    buttonColumns: 4,
+  },
 ]

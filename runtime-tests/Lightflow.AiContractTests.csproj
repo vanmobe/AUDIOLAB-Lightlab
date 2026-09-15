@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable><CopilotSkipCliDownload>true</CopilotSkipCliDownload></PropertyGroup>
+  <ItemGroup><PackageReference Include="GitHub.Copilot.SDK" Version="1.0.13" /><Compile Include="../runtime/CopilotShowDesignProvider.cs" Link="CopilotShowDesignProvider.cs" /><Compile Include="../runtime/CopilotSdkTransport.cs" Link="CopilotSdkTransport.cs" /></ItemGroup>
+  <ItemGroup><Compile Include="../runtime/AiProviders.cs" Link="AiProviders.cs" /><Compile Include="../runtime/OllamaShowDesignProvider.cs" Link="OllamaShowDesignProvider.cs" /><Compile Include="../runtime/PatternContract.cs" Link="PatternContract.cs" /><Compile Include="../runtime/BandDesignContract.cs" Link="BandDesignContract.cs" /></ItemGroup>
+  <ItemGroup><Compile Include="../runtime/DmxPackets.cs" Link="DmxPackets.cs" /></ItemGroup>
+  <ItemGroup><Compile Include="../runtime/OutputSession.cs" Link="OutputSession.cs" /><Compile Include="../runtime/LocalRequestPolicy.cs" Link="LocalRequestPolicy.cs" /></ItemGroup>
+  <ItemGroup><Compile Include="../runtime/DmxInspection.cs" Link="DmxInspection.cs" /><Compile Include="../runtime/RuntimeDmxCatalog.cs" Link="RuntimeDmxCatalog.cs" /></ItemGroup>
+  <ItemGroup><Compile Include="../runtime/PlaybackSession.cs" Link="PlaybackSession.cs" /><Compile Include="../runtime/PlaybackOutput.cs" Link="PlaybackOutput.cs" /><Compile Include="../runtime/NodeShowEvaluator.cs" Link="NodeShowEvaluator.cs" /></ItemGroup>
+  <ItemGroup><Compile Include="../runtime/PlaybackAudio.cs" Link="PlaybackAudio.cs" /></ItemGroup>
+  <ItemGroup><Compile Include="../runtime/AiTrace.cs" Link="AiTrace.cs" /></ItemGroup>
+  <ItemGroup><Compile Include="../runtime/AiRequestInput.cs" Link="AiRequestInput.cs" /></ItemGroup>
+  <ItemGroup><Compile Include="../runtime/AiStreaming.cs" Link="AiStreaming.cs" /></ItemGroup>
+  <ItemGroup><FrameworkReference Include="Microsoft.AspNetCore.App" /><Compile Include="../runtime/AiStreamingEndpoint.cs" Link="AiStreamingEndpoint.cs" /></ItemGroup>
+  <ItemGroup><Compile Include="../runtime/WingOsc.cs" Link="WingOsc.cs" /><Compile Include="../runtime/WingSync.cs" Link="WingSync.cs" /><Compile Include="../runtime/WingEndpoints.cs" Link="WingEndpoints.cs" /></ItemGroup>
+</Project>

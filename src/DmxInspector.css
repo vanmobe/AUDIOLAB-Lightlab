@@ -1,0 +1,12 @@
+.dmx-inspector { margin-top: 24px; border-top: 1px solid #35414e; padding-top: 18px; min-width: 0; }
+.dmx-inspector > summary { cursor: pointer; font-weight: 600; }
+.dmx-inspector-inputs { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(100px, 1fr); gap: 12px; }
+.dmx-inspector-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+.dmx-inspector-result { overflow-wrap: anywhere; }
+.dmx-inspector-result ul { padding-left: 22px; font-size: 13px; line-height: 1.5; }
+.dmx-universe { padding: 12px; margin-top: 12px; border: 1px solid #45505e; border-radius: 6px; }
+.dmx-universe details { padding: 10px 0; }
+.dmx-universe table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+.dmx-universe th, .dmx-universe td { text-align: left; padding: 7px; border-bottom: 1px solid #35414e; }
+.dmx-universe td:last-child { font-variant-numeric: tabular-nums; }
+@media (max-width: 650px) { .dmx-inspector-inputs { grid-template-columns: minmax(0, 1fr); } }

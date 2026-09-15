@@ -1,0 +1,33 @@
+{
+  "repository": {
+    "full_name": "vanmobe/AUDIOLAB-Lightlab"
+  },
+  "tooling": {
+    "required_clis": ["git", "node", "npm", "dotnet"],
+    "optional_clis": ["gh"]
+  },
+  "environment": {
+    "target_system": "local-first web application with companion runtime",
+    "host_platform": "loopback web application and local hardware adapters",
+    "platforms": [
+      "macOS (current packaged target)",
+      "Windows (acceptance testing required)",
+      "Linux (acceptance testing required)"
+    ]
+  },
+  "integrations": {
+    "github": {
+      "ci_workflow": ".github/workflows/ci.yml"
+    },
+    "lighting": {
+      "output_protocols": ["Art-Net", "sACN"],
+      "first_control_surface": "Behringer WING via capability profile"
+    }
+  },
+  "paths": {
+    "project_context": ".project/PROJECT_CONTEXT.md",
+    "project_root_readme": ".project/README.md",
+    "architecture_context": "docs/REVIEW_2026-09-14.md",
+    "technical_design": "docs/technical-design/AI_Lighting_Show_Designer_Technical_Design_v1.1.docx"
+  }
+}

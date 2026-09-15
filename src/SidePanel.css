@@ -1,0 +1,9 @@
+.side-panel { position: fixed; inset: 0 0 0 auto; margin: 0; box-sizing: border-box; width: min(620px, 100vw); height: 100dvh; max-height: 100dvh; max-width: 100vw; padding: 0; border: 0; border-left: 1px solid var(--lab-line); background: var(--lab-panel); color: var(--lab-text); box-shadow: -16px 0 70px #0005; }
+.side-panel::backdrop { background: #070b1480; }
+.side-panel-heading { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 20px; background: var(--lab-panel); border-bottom: 1px solid var(--lab-line); }
+.side-panel-heading h2 { margin: 0; font-size: 18px; }
+.side-panel-heading button { flex-shrink: 0; }
+.side-panel-body { padding: 20px; min-width: 0; overflow-wrap: anywhere; }
+.side-panel-body > * { min-width: 0; }
+.side-panel input, .side-panel select { max-width: 100%; }
+@media(max-width: 600px) { .side-panel-heading, .side-panel-body { padding: 14px; } }

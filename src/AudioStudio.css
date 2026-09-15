@@ -1,0 +1,35 @@
+.audio-studio header { margin-bottom: 1.5rem; }
+.audio-studio[hidden] { display: none; }
+.audio-studio-live { margin: 1rem 0; padding: 1rem; border: 1px solid #354557; border-radius: 12px; }
+.audio-studio-live .audio-studio-layout { display: block; }
+.audio-studio-live .audio-waveform { height: 60px; }
+.audio-settings fieldset { display: grid; gap: .8rem; min-width: 0; }
+.audio-studio-live .audio-studio-layout > div > label { display: block; margin: .6rem 0; }
+.audio-studio-live select { width: 100%; min-width: 0; }
+.live-with-audio { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 360px); gap: 1rem; align-items: start; }
+.live-with-audio > .workspace { display: contents; }
+.live-with-audio > .audio-studio { grid-column: 2; grid-row: 1; margin: 0; min-width: 0; }
+.live-with-audio .live-stage-column { grid-column: 1; grid-row: 1 / span 2; min-width: 0; }
+.live-with-audio .control-panel { grid-column: 2; grid-row: 2; min-width: 0; }
+@media (max-width: 1000px) {
+  .live-with-audio { grid-template-columns: minmax(0, 1fr); }
+  .live-with-audio > .audio-studio { grid-column: 1; grid-row: 1; }
+  .live-with-audio .live-stage-column { grid-column: 1; grid-row: 2; }
+  .live-with-audio .control-panel { grid-column: 1; grid-row: 3; }
+}
+.audio-studio-layout { display: grid; grid-template-columns: minmax(280px, 1fr) minmax(0, 1.6fr); gap: 1.5rem; }
+.audio-studio-layout > * { min-width: 0; }
+.audio-studio audio { width: 100%; margin: .8rem 0; }
+.audio-studio small { display: block; color: var(--text-muted, #abb9c8); margin: .4rem 0; }
+.audio-studio details { margin-top: 1rem; padding: 1rem; border: 1px solid #354557; border-radius: 12px; }
+.audio-settings { display: grid; gap: .8rem; padding-top: 1rem; }
+.audio-settings label, .audio-file { display: grid; gap: .4rem; }
+.audio-settings select, .audio-file input { width: 100%; min-width: 0; }
+.audio-filename { overflow-wrap: anywhere; }
+.audio-stage { height: 480px; overflow: hidden; border-radius: 16px; background: #080d13; }
+.audio-studio aside { align-self: start; position: sticky; top: 1rem; }
+.audio-waveform { width: 100%; height: 100px; background: #0e1721; border-radius: 8px; }
+.audio-wave { stroke: #7398d1; stroke-width: 1; }
+.audio-markers { stroke: #8fe9ce; stroke-width: 1; opacity: .6; }
+.audio-cursor { stroke: #ffbd7b; stroke-width: 3; }
+@media (max-width: 950px) { .audio-studio-layout { grid-template-columns: 1fr; } .audio-studio aside { position: static; grid-row: 1; } .audio-stage { height: 300px; } }

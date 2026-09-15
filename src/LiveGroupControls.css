@@ -1,0 +1,16 @@
+.live-group-controls { min-width: 0; }
+.live-group-controls > label, .live-group-inspector > label { display: block; font-size: 13px; margin: 12px 0; }
+.live-group-controls select { display: block; width: 100%; min-width: 0; max-width: 100%; margin-top: 6px; padding: 10px 8px; font: inherit; }
+.live-group-controls small { display: block; color: var(--lab-muted, #a4adbf); line-height: 1.5; font-size: 11px; overflow-wrap: anywhere; }
+.live-group-scope { font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; padding: 10px; border-left: 2px solid #80afff; background: #264c8128; }
+.live-group-notice { font-size: 12px; line-height: 1.5; padding: 10px; border: 1px solid #c49952; border-radius: 6px; }
+.live-group-inspector { margin: 16px 0; }
+.live-group-inspector output { float: right; }
+.live-group-inspector input[type=range] { display: block; width: 100%; margin-top: 10px; }
+.live-group-links { padding: 12px 0; border-top: 1px solid var(--lab-line, #334155); }
+.live-group-links summary { cursor: pointer; font-size: 13px; }
+.live-group-links p { font-size: 12px; line-height: 1.5; }
+.live-group-links label { display: flex; align-items: center; gap: 8px; font-size: 12px; margin: 8px 0; }
+.live-group-links input[type=checkbox] { width: auto; flex-shrink: 0; }
+.live-group-controls button { max-width: 100%; white-space: normal; font-size: 12px; padding: 9px; margin: 5px 5px 5px 0; }
+.live-group-reset { border-top: 1px solid var(--lab-line, #334155); padding-top: 10px; }

@@ -1,0 +1,15 @@
+.design-library > .look-editor[open] { grid-column: 1 / -1; }
+.look-editor-body { padding: 0 20px 20px; }
+.look-layer-layout { display: grid; grid-template-columns: minmax(170px, .8fr) minmax(240px, 1.2fr); gap: 20px; margin: 18px 0; align-items: start; }
+.look-layer-list { display: grid; gap: 8px; min-width: 0; }
+.look-layer-list button { display: grid; gap: 5px; text-align: left; min-width: 0; width: 100%; overflow-wrap: anywhere; }
+.look-layer-list button span, .look-layer-list button small { white-space: normal; }
+.look-editor .look-layer-list button { background: transparent; margin-top: 0; }
+.look-editor .look-layer-list button.active { background: #264c81; border-color: #a6c8ff; }
+.look-layer-inspector { min-width: 0; margin: 0 !important; }
+.look-layer-inspector .editor-row { flex-wrap: wrap; }
+.look-layer-inspector select { max-width: 100%; min-width: 0; }
+.look-layer-level { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0; }
+.look-layer-level output { margin-left: auto; }
+.look-layer-level input { flex-basis: 100%; width: 100%; }
+@media (max-width: 700px) { .look-layer-layout { grid-template-columns: 1fr; } .look-editor-body { padding: 0 12px 14px; } }

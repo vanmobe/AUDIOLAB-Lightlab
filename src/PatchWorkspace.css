@@ -1,0 +1,21 @@
+.patch-studio { padding:24px; border:1px solid #35414e; border-radius:10px; background:#1a2129; }
+.patch-studio > header,.patch-universe > header { display:flex; justify-content:space-between; align-items:start; flex-wrap:wrap; gap:16px; }
+.patch-studio h2 { margin:0; }.patch-studio h3 { margin:0 0 12px; font-size:17px; }.patch-back { color:#a6c8ff; font-size:12px; }
+.patch-studio p { color:#aeb9c6; line-height:1.5; }.patch-status { padding:8px 12px; border:1px solid #45505e; border-radius:6px; font-size:12px; }
+.patch-stats { display:flex; flex-wrap:wrap; gap:12px 32px; padding:20px 0; border-bottom:1px solid #35414e; color:#aeb9c6; }.patch-stats strong { color:#edf2f7; margin-right:5px; }
+.patch-studio button { padding:10px 14px; background:#242d38; border:1px solid #45505e; color:#edf2f7; border-radius:6px; font:inherit; cursor:pointer; }
+.patch-studio button[aria-pressed=true] { background:#264c81; border-color:#80afff; }.patch-studio button:disabled { opacity:.45; cursor:not-allowed; }
+.patch-studio :focus-visible { outline:2px solid #80afff; outline-offset:3px; }
+.patch-tabs { display:flex; flex-wrap:wrap; gap:8px; margin:20px 0; }
+.patch-layout { display:grid; grid-template-columns:minmax(0,1fr) 330px; gap:24px; align-items:start; }.patch-list { min-width:0; }
+.patch-filters { display:flex; flex-wrap:wrap; gap:12px; align-items:end; margin-bottom:20px; }.patch-filters > label { flex:1 1 150px; }
+.patch-studio label { display:grid; gap:8px; font-size:13px; min-width:0; }.patch-studio input,.patch-studio select { width:100%; min-width:0; box-sizing:border-box; padding:10px; color:#edf2f7; background:#10171d; border:1px solid #45505e; border-radius:6px; font:inherit; }
+.patch-studio .patch-check { display:flex; align-items:center; gap:8px; min-height:40px; }.patch-check input[type=checkbox] { width:16px; height:16px; flex:none; }
+.patch-group { margin-bottom:20px; border:1px solid #35414e; border-radius:8px; overflow:hidden; }.patch-group h3 { padding:14px; margin:0; background:#141b23; display:flex; justify-content:space-between; gap:12px; }.patch-group h3 small { font-weight:400; color:#aeb9c6; font-size:12px; }
+.patch-columns,.patch-studio .patch-fixture { display:grid; grid-template-columns:minmax(0,1fr) 75px 100px; gap:12px; padding:12px 14px; text-align:left; align-items:center; }
+.patch-columns { font-size:11px; color:#aeb9c6; }.patch-studio .patch-fixture { width:100%; border:0; border-top:1px solid #35414e; border-radius:0; font-size:13px; background:transparent; }.patch-fixture > span { min-width:0; overflow-wrap:anywhere; }.patch-fixture small { display:block; margin-top:5px; color:#aeb9c6; font-size:11px; }
+.patch-inspector { padding:20px; border:1px solid #35414e; border-radius:8px; background:#141b23; position:sticky; top:16px; }.patch-inspector form > label { margin:16px 0; }.patch-address { display:grid; grid-template-columns:1fr 1fr; gap:12px; }.patch-help { font-size:12px; }.patch-studio .patch-problem { color:#ffbc91; }
+.patch-network { display:grid; gap:20px; }.patch-notice { padding:14px; border-left:3px solid #80afff; background:#141b23; }.patch-universe { border:1px solid #35414e; padding:20px; border-radius:8px; }.patch-universe header span { font-size:13px; color:#aeb9c6; }.patch-universe meter { display:block; width:100%; height:10px; margin:8px 0 20px; }
+.patch-route { border-top:1px solid #35414e; padding-top:16px; margin-top:16px; }.patch-route-fields { display:grid; grid-template-columns:120px 160px minmax(180px,1fr); gap:16px; }.patch-route .patch-check { margin-top:16px; }.patch-route [role=status] { display:block; margin-top:12px; font-size:13px; }
+@media(max-width:1100px) { .patch-layout { grid-template-columns:minmax(0,1fr); }.patch-inspector { position:static; } }
+@media(max-width:650px) { .patch-studio { padding:14px; }.patch-columns,.patch-studio .patch-fixture { grid-template-columns:minmax(0,1fr) 42px 70px; gap:8px; padding:12px 8px; }.patch-route-fields { grid-template-columns:minmax(0,1fr); }.patch-universe { padding:14px; }.patch-tabs button { flex:1; } }

@@ -1,0 +1,10 @@
+.live-shortcut-overlay { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 20px; background: #070a12cc; }
+.live-shortcut-help { width: min(460px, 100%); padding: 20px; border: 1px solid #607da6; border-radius: 14px; background: #1c2030; box-shadow: 0 24px 80px #000a; }
+.live-shortcut-help header { display: flex; justify-content: space-between; gap: 16px; align-items: start; }
+.live-shortcut-help h2 { margin: 0; font-size: 21px; }
+.live-shortcut-help dl { display: grid; gap: 10px; margin: 20px 0; }
+.live-shortcut-help dl div { display: grid; grid-template-columns: 110px 1fr; gap: 12px; align-items: center; padding-bottom: 10px; border-bottom: 1px solid var(--lab-line); }
+.live-shortcut-help dt, .live-shortcut-help dd { margin: 0; }
+.live-shortcut-help dd, .live-shortcut-help > p { color: var(--lab-muted); font-size: 13px; }
+.live-shortcut-help > p { margin: 0; line-height: 1.5; }
+.live-shortcut-help kbd { display: inline-block; min-width: 28px; padding: 3px 7px; border: 1px solid #65718a; border-bottom-width: 2px; border-radius: 5px; background: #111624; color: var(--lab-text); font-family: inherit; font-size: 12px; text-align: center; }

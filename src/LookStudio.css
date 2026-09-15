@@ -1,0 +1,58 @@
+.look-studio, .look-studio-empty { min-width: 0; grid-column: 1 / -1; }
+.look-studio select, .look-studio input[type="number"] { border: 1px solid #45505e; border-radius: 6px; padding: 10px; }
+.look-studio-heading { display: flex; gap: 20px; align-items: end; justify-content: space-between; margin-bottom: 22px; }
+.look-studio-heading h2 { margin: 0 0 8px; }
+.look-studio-heading p { margin: 0; }
+.look-studio-heading > label { display: grid; gap: 7px; width: min(340px, 40%); min-width: 0; }
+.look-studio-heading select { width: 100%; min-width: 0; }
+.look-studio-layout { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(370px, 1fr); gap: 22px; align-items: start; }
+.look-studio-library { display: none; min-width: 0; position: sticky; top: 20px; }
+.look-studio-library h3 { display: flex; justify-content: space-between; gap: 8px; margin: 0 0 12px; font-size: 14px; }
+.look-studio-library h3 small { color: var(--lab-muted); font-weight: 400; }
+.look-studio-library input { width: 100%; box-sizing: border-box; margin-bottom: 10px; font-size: 12px; }
+.look-studio-look-list { display: grid; gap: 6px; max-height: calc(100dvh - 220px); overflow-y: auto; padding: 3px; }
+.look-studio-look-list button { width: 100%; text-align: left; overflow-wrap: anywhere; font-size: 12px; font-weight: 500; }
+.look-studio-look-list button[aria-pressed=true] { background: #213b67; border-color: #679eff; color: #e6efff; }
+@media (min-width: 1400px) {
+  .look-studio-layout { grid-template-columns: 180px minmax(480px, 1.35fr) minmax(350px, 1fr); gap: 18px; }
+  .look-studio-library { display: block; }
+  .look-studio-heading > .look-studio-mobile-picker { display: none; }
+}
+.look-studio-preview { position: sticky; top: 20px; min-width: 0; overflow: hidden; background: #121722; border: 1px solid #303c50; border-radius: 16px; }
+.look-studio-stage { position: relative; width: 100%; height: clamp(280px, 47vh, 540px); min-width: 0; background: #070a12; }
+.look-studio-stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.look-studio-tempo { padding: 18px; border-top: 1px solid #303c50; }
+.look-studio-tempo-title { display: grid; gap: 5px; }
+.look-studio-tempo-title span, .look-studio-tempo small { color: #a9b7cc; font-size: .8rem; }
+.look-studio-tempo-inputs { display: flex; align-items: center; gap: 18px; margin: 14px 0 10px; }
+.look-studio-tempo-inputs > input { flex: 1; min-width: 0; width: 100%; accent-color: #2f7cff; }
+.look-studio-tempo-inputs > label { display: flex; align-items: center; gap: 7px; flex: 0 0 auto; }
+.look-studio-tempo-inputs input[type="number"] { width: 86px; }
+.look-studio-editor { min-width: 0; }
+.look-studio-save-note { margin: 0 0 12px; color: #a9b7cc; font-size: .85rem; }
+.look-studio-editor .look-editor-body { padding: 0; }
+.look-studio-editor .editor-row { display: grid; grid-template-columns: minmax(0, 1fr); border: 0; gap: 8px; }
+.look-studio-editor .editor-row select { width: 100%; }
+.look-studio-editor fieldset { border: 1px solid #303c50; border-radius: 10px; padding: 14px; }
+.look-studio-editor legend { color: #a9b7cc; padding: 0 8px; font-size: .85rem; }
+.look-studio-editor button { border: 1px solid #45505e; border-radius: 6px; padding: 10px; color: #e9eef8; background: #182238; }
+.look-studio-editor .look-layer-layout { grid-template-columns: 1fr; gap: 16px; }
+.look-studio-editor .look-layer-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.look-studio-editor .look-layer-list button { padding: 12px; }
+.look-studio-error { padding: 0 18px; }
+.look-studio-empty { padding: 24px; }
+@media (max-width: 1000px) {
+  .look-studio-layout { grid-template-columns: 1fr; }
+  .look-studio-preview { top: 8px; z-index: 2; }
+  .look-studio-stage { height: clamp(140px, 23vh, 220px); }
+  .look-studio-tempo { padding: 10px 14px; }
+  .look-studio-tempo-title span { display: none; }
+  .look-studio-tempo-inputs { margin: 7px 0; }
+  .look-studio-tempo-inputs input[type="number"] { padding: 6px; }
+}
+@media (max-width: 560px) {
+  .look-studio-heading { align-items: stretch; flex-direction: column; gap: 14px; }
+  .look-studio-heading > label { width: 100%; }
+  .look-studio-layout { gap: 18px; }
+  .look-studio-tempo-inputs { gap: 10px; }
+}

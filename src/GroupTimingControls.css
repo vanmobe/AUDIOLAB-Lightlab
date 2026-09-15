@@ -1,0 +1,7 @@
+.group-timing-controls { border-top: 1px solid var(--lab-line, #334155); padding: 12px 0; min-width: 0; }
+.group-timing-controls > summary { cursor: pointer; font-size: 13px; }
+.group-timing-controls > p, .group-timing-controls > small { font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+.group-timing-controls > label { display: block; font-size: 13px; margin: 12px 0; }
+.group-timing-controls select, .group-timing-controls input[type=number] { display: block; box-sizing: border-box; width: 100%; min-width: 0; max-width: 100%; padding: 10px 8px; margin-top: 6px; font: inherit; }
+.group-timing-controls .timing-note { border-left: 2px solid #c49952; padding-left: 10px; }
+.group-timing-controls .timing-effective { color: var(--lab-muted, #a4adbf); }

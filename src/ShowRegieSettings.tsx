@@ -1,0 +1,21 @@
+import type { ShowDocument } from './domain'
+import { colorRoles, defaultShowRegie, type ShowRegie } from './show-regie'
+import './ShowRegieSettings.css'
+
+const roleNames = { primary: 'Hoofdkleur', accent: 'Accentkleur', secondary: 'Nevenskleur', white: 'Wittint' }
+export function ShowRegieSettings({ show, onChange, disabled = false, expanded = false }: { show: ShowDocument; onChange: (show: ShowDocument) => void; disabled?: boolean; expanded?: boolean }) {
+  const regie = show.regie ?? defaultShowRegie(show)
+  const update = (change: Partial<ShowRegie>) => onChange({ ...show, regie: { ...regie, ...change } })
+  const transition = regie.transition ?? { quantizeBeats: 0, fadeBeats: 0 }
+  return <details className="show-regie" open={expanded}><summary>Showregie · lichtdekking, kleurrollen en veiligheidslicht</summary>
+    <fieldset disabled={disabled}>
+      <section><h3>Overgang naar een andere Look</h3><label>Startmoment<select value={transition.quantizeBeats} onChange={event => update({ transition: { ...transition, quantizeBeats: Number(event.target.value) as 0 | 1 | 2 | 4 | 8 } })}><option value="0">Meteen</option>{[1, 2, 4, 8].map(beats => <option key={beats} value={beats}>Volgende grens van {beats} beat{beats > 1 ? 's' : ''}</option>)}</select></label><label>Overgangsduur <output>{transition.fadeBeats === 0 ? 'Direct wisselen' : `${transition.fadeBeats} beats`}</output><input aria-label="Look overgangsduur" type="range" min="0" max="32" step=".25" value={transition.fadeBeats} onChange={event => update({ transition: { ...transition, fadeBeats: Number(event.target.value) } })} /></label><p>De vorige Look loopt door tot de gekozen beatgrens. Blackout en veiligheidslicht reageren meteen. Groeps- en masterwijzigingen onderbreken een overgang; lichtdekking kan tijdens de fade lager zijn.</p></section>
+      <section><h3>Hoeveel lichtpunten blijven aan?</h3><label>Minimaal aandeel lichtpunten <output>{regie.minimumCoverage.percent}%{regie.minimumCoverage.percent === 0 ? ' · uitgeschakeld' : ''}</output><input aria-label="Minimale lichtdekking" type="range" min="0" max="100" step="5" value={regie.minimumCoverage.percent} onChange={event => update({ minimumCoverage: { ...regie.minimumCoverage, percent: Number(event.target.value) } })} /></label>
+        <label>Een lichtpunt telt mee vanaf <output>{Math.round(regie.minimumCoverage.threshold * 100)}% intensiteit</output><input aria-label="Drempel voor lichtdekking" type="range" min="1" max="100" step="1" value={regie.minimumCoverage.threshold * 100} onChange={event => update({ minimumCoverage: { ...regie.minimumCoverage, threshold: Number(event.target.value) / 100 } })} /></label>
+        <p>Een percentage lampen of afzonderlijke bar-leds, geen luxmeting. Het patroon krijgt waar nodig extra basislicht. Uitgeschakelde groepen, masters en kleurlimieten blijven leidend; daardoor kan het doel onhaalbaar zijn. Blackout en veiligheidslicht hebben altijd voorrang.</p>
+      </section>
+      <section><h3>Actieve kleurrollen</h3><div className="show-regie-choices">{colorRoles.map(role => <label key={role}><input type="checkbox" checked={regie.colorRoles.includes(role)} disabled={regie.colorRoles.length === 1 && regie.colorRoles.includes(role)} onChange={event => update({ colorRoles: event.target.checked ? colorRoles.filter(item => item === role || regie.colorRoles.includes(item)) : regie.colorRoles.filter(item => item !== role) })} />{roleNames[role]}</label>)}</div><p>Deze kleuren uit het gekozen profiel worden verdeeld over de RGB-lichtpunten. Kies één tot vier rollen. Warmwitte theaterspots behouden hun eigen vaste kleur.</p></section>
+      <section><h3>Veiligheidslichtgroepen</h3><div className="show-regie-choices">{show.groups.map(group => <label key={group.id}><input type="checkbox" checked={regie.safetyGroupIds.includes(group.id)} onChange={event => update({ safetyGroupIds: event.target.checked ? [...regie.safetyGroupIds, group.id] : regie.safetyGroupIds.filter(id => id !== group.id) })} />{group.name}</label>)}</div><p>Alleen deze groepen branden in de veiligheidsstand, op 80% vóór de groepsmaster. {regie.safetyGroupIds.length === 0 ? 'Geen groep gekozen: deze stand blijft donker.' : 'Creatieve patronen en kleurlimieten zijn dan niet van toepassing.'}</p></section>
+    </fieldset>
+  </details>
+}

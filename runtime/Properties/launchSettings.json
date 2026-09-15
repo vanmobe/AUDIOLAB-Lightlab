@@ -1,0 +1,14 @@
+{
+  "profiles": {
+    "Default": {
+      "commandName": "Project"
+    },
+    "Ollama": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "LIGHTFLOW_AI_PROVIDER": "ollama",
+        "LIGHTFLOW_OLLAMA_MODEL": "gpt-oss:20b"
+      }
+    }
+  }
+}

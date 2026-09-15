@@ -1,0 +1,18 @@
+.wing-sync { min-width: 0; }
+.wing-sync p, .wing-sync small { line-height: 1.55; overflow-wrap: anywhere; }
+.wing-sync-address { display: flex; align-items: end; flex-wrap: wrap; gap: 1rem; margin-block: 1rem; }
+.wing-sync-address label { display: grid; gap: .4rem; max-width: 22rem; width: 100%; }
+.wing-sync fieldset { border: 1px solid #3b536b; border-radius: 8px; margin: 1rem 0; min-width: 0; }
+.wing-sync-bank-actions { display: flex; gap: .5rem; flex-wrap: wrap; margin-block: .75rem; }
+.wing-sync-banks { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .5rem; }
+.surface-editor .wing-sync-banks label, .surface-editor .wing-sync-confirm { display: flex; flex-direction: row; gap: .6rem; align-items: center; padding: .5rem; }
+.wing-sync input[type=checkbox] { width: 1.1rem; height: 1.1rem; flex: 0 0 auto; }
+.wing-sync-warning { color: #e8c08b; }
+.wing-sync-plan { border-top: 1px solid #3b536b; margin-top: 1rem; padding-top: 1rem; }
+.wing-sync-plan > small { display: block; margin-block: .5rem; }
+.wing-sync-table { overflow: auto; max-height: 24rem; margin-block: 1rem; }
+.wing-sync-table table { width: 100%; border-collapse: collapse; text-align: left; font-size: .85rem; }
+.wing-sync-table td, .wing-sync-table th { padding: .65rem; border-bottom: 1px solid #3b536b; vertical-align: top; overflow-wrap: anywhere; }
+.wing-sync-table th { position: sticky; top: 0; background: #141d27; }
+@media (max-width: 900px) { .wing-sync-banks { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .wing-sync { padding: .75rem; } .wing-sync-banks { grid-template-columns: repeat(2, minmax(0, 1fr)); } .wing-sync-bank-actions button { flex: 1 1 140px; } .wing-sync-table table { min-width: 480px; } }

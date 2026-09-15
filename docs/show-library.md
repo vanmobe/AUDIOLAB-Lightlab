@@ -1,0 +1,11 @@
+# Showbibliotheek
+
+De actieve editor bewaart show en versiegeschiedenis samen in één atomair browseropslagpakket. De showbibliotheek bewaart expliciete, benoemde snapshots in IndexedDB: maximaal 32 shows, elk maximaal 20 MB inclusief maximaal 100 versies. Openen valideert het volledige pakket en de meegeleverde fixturecatalogus; een beschadigd pakket verhindert niet dat andere shows worden geopend. Beschadigde vermeldingen met een herkenbare opslag-ID kunnen na bevestiging worden verwijderd.
+
+Een aparte herstelplaats telt niet mee voor de 32 shows. Vóór het vervangen van de editor kan de applicatie met `saveLibraryRecovery(name, bundle)` het volledige huidige pakket duurzaam bewaren. Het nieuwe pakket en de metadata worden samen in één IndexedDB-transactie opgeslagen. Mislukt dit, bijvoorbeeld wegens opslagquota, dan blijft de vorige herstelplaats behouden en moet de aanroeper de editorwissel afbreken.
+
+De herstelplaats is zichtbaar in de bibliotheek en kan worden geëxporteerd of verwijderd, niet rechtstreeks geopend. Exporteer eerst en gebruik daarna **Show openen** om het bestand te herstellen. Dit voorkomt dat de enige duurzame herstelkopie tijdens een mislukte editorwissel wordt overschreven. De volgende showwissel of herstelactie mag deze ene plaats vervangen; benoemde shows blijven ongewijzigd. Browseropslag is geen externe back-up en kan verdwijnen wanneer browsergegevens worden gewist.
+
+Bibliotheekopslag gebruikt database `lightlab-show-library-v1`, met aparte `metadata`- en `packages`-stores. Lijsten lezen alleen begrensde metadata; openen valideert het bestaande `lightflow-show`-pakketformaat versie 1. De actieve editor gebruikt afzonderlijk `lightlab-active-package-v1`. Bij de eerste succesvolle migratie blijven `lightflow-show-v1` en `lightflow-versions-v1` onaangeroerd als oude herstelgegevens. Vanaf dat moment zijn die twee oude sleutels niet meer actueel. Exporteer vóór een downgrade; vertrouw niet op de oude sleutels om recente wijzigingen terug te krijgen.
+
+Een ongeldige of ontoegankelijke canonieke opslag wordt niet vervangen door een oudere kopie of automatisch overschreven. Bewaren wordt geblokkeerd, zodat oorspronkelijke gegevens voor herstel behouden blijven. Bij mislukte migratie blijven geldige oude gegevens leesbaar maar wordt automatisch bewaren eveneens geblokkeerd.

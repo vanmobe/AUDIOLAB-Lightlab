@@ -119,7 +119,7 @@ it('blocks stop for an external runtime, including direct handler invocation', a
   expect(text(view.render())).toContain('Actief buiten deze starter')
   view.cleanup()
 })
-it('marks stale status and blocks start after a failed check', async () => {
+it('keeps starting available from a last confirmed stopped status after a failed check', async () => {
   hooks.request.mockResolvedValue(stopped)
   const view = setup()
   await flush()
@@ -128,15 +128,12 @@ it('marks stale status and blocks start after a failed check', async () => {
   await flush()
   expect(text(view.render())).toContain('Status onbekend')
   expect(text(view.render())).toContain('Laatst ontvangen berichten')
-  expect(view.button('Start runtime').disabled).toBe(true)
+  expect(view.button('Start runtime').disabled).toBe(false)
+  hooks.request.mockResolvedValue({ ...stopped, state: 'starting', canStart: false })
   view.button('Start runtime').onClick!()
   await flush()
-  expect(hooks.request.mock.calls.map((call) => call[0])).toEqual(['status', 'status'])
-  hooks.request.mockResolvedValue(stopped)
-  view.button('Opnieuw proberen').onClick!()
-  await flush()
-  expect(view.button('Opnieuw proberen')).toBeUndefined()
-  expect(view.button('Start runtime').disabled).toBe(false)
+  expect(hooks.request.mock.calls.map((call) => call[0])).toEqual(['status', 'status', 'start'])
+  expect(text(view.render())).toContain('Starten…')
   view.cleanup()
 })
 it('aborts discovery and ignores late answers after unmount without stopping', async () => {

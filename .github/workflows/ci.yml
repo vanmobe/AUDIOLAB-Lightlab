@@ -26,4 +26,5 @@ jobs:
       - run: dotnet restore Lightlab.slnx
       - run: npm run format:check
       - run: dotnet format Lightlab.slnx --verify-no-changes --no-restore
+      - run: npx playwright install --with-deps chromium
       - run: npm run verify

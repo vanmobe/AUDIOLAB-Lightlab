@@ -114,8 +114,8 @@ Current user priority: continuous sACN/Art-Net show output is now requested and 
 - TypeScript 7 validates browser asset imports through `src/assets.d.ts`; the Node-side config deliberately includes JavaScript so the shared local-runtime manager retains inferred types. Vite 8 and Vitest 5 require the supported Node 22.23.1 baseline.
 - Node 22.23.1 (`.nvmrc`) and .NET SDK 10.0.103 (`global.json`) are the
   supported development toolchain. `npm run verify` is the required local and
-  GitHub CI check: frontend/launcher tests, production web/worker build and
-  .NET runtime contracts. Prettier (`npm run format:check`) and
+  GitHub CI check: frontend/launcher tests, production web/worker build, .NET
+  runtime contracts and the Chromium browser smoke test. Prettier (`npm run format:check`) and
   `dotnet format Lightlab.slnx --verify-no-changes --no-restore` enforce the
   established TypeScript/documentation and C# formatting baselines. `npm run
 package:local` is a deliberate host-native release action, not routine

@@ -2,7 +2,6 @@ import { PatchWorkspace } from './PatchWorkspace'
 import { StageEditor } from './StageEditor'
 import { ControlSurfaceEditor } from './ControlSurfaceEditor'
 import { LiveControlSurface } from './LiveControlSurface'
-import { RuntimeLiveView } from './RuntimeLiveView'
 import { SidePanel } from './SidePanel'
 import { LiveTransportBar } from './LiveTransportBar'
 import { AudioInputSettings } from './AudioInputSettings'
@@ -15,16 +14,13 @@ import { createLookTransitionPlayer, type TransitionResult } from './look-transi
 import { LiveLookLibrary } from './LiveLookLibrary'
 import { ShowDashboard } from './ShowDashboard'
 import { lookLayerSummary } from './LookEditor'
-import { LookStudio } from './LookStudio'
-import { AudioStudio } from './AudioStudio'
 import { createAudioLivePlayer, type AudioLiveSource } from './audio-live'
 import { PatternDetails } from './PatternDetails'
 import { LiveGroupControls } from './LiveGroupControls'
 import { emptyLiveControls, linkedGroupIds, livePreview } from './live-controls'
-import { DesignAssistant } from './DesignAssistant'
 import './flow.css'
 import './workspace-flow.css'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   animationLabel,
   animationEffects,
@@ -37,7 +33,7 @@ import {
 } from './domain'
 import { fixtureProfiles } from './fixtures'
 import { initialShow } from './seed'
-import { StageSimulator } from './simulator'
+import type { StageSimulator } from './simulator'
 import { simulationErrorMessage } from './simulation-errors'
 import { ValidatedNameInput } from './ValidatedNameInput'
 import { advancePreviewBeat } from './preview-clock'
@@ -62,6 +58,15 @@ const activeStorage = {
   getItem: (key: string) => localStorage.getItem(key),
   setItem: (key: string, value: string) => localStorage.setItem(key, value),
 }
+
+const AudioStudio = lazy(() => import('./AudioStudio').then(({ AudioStudio }) => ({ default: AudioStudio })))
+const DesignAssistant = lazy(() =>
+  import('./DesignAssistant').then(({ DesignAssistant }) => ({ default: DesignAssistant })),
+)
+const LookStudio = lazy(() => import('./LookStudio').then(({ LookStudio }) => ({ default: LookStudio })))
+const RuntimeLiveView = lazy(() =>
+  import('./RuntimeLiveView').then(({ RuntimeLiveView }) => ({ default: RuntimeLiveView })),
+)
 
 export default function App() {
   const [initialPackage] = useState(() => loadActivePackage(activeStorage, initialShow))
@@ -246,24 +251,38 @@ export default function App() {
   }, [workspace, liveSource])
   useEffect(() => {
     if (!stage.current) return
-    let view: StageSimulator
-    try {
-      view = new StageSimulator(stage.current, show.fixtures, show.camera, show.bandMembers)
-      simulator.current = view
-      setPreviewError('')
-    } catch (error) {
-      simulator.current = null
-      setPreviewError(
-        simulationErrorMessage(
-          error,
-          'De 3D-weergave kon niet starten. Je show blijft beschikbaar; controleer WebGL en probeer opnieuw.',
-        ),
-      )
-      return
-    }
+    let cancelled = false
+    let view: StageSimulator | null = null
+    void import('./simulator')
+      .then(({ StageSimulator }) => {
+        if (cancelled || !stage.current) return
+        try {
+          view = new StageSimulator(stage.current, show.fixtures, show.camera, show.bandMembers)
+          simulator.current = view
+          setPreviewError('')
+        } catch (error) {
+          simulator.current = null
+          setPreviewError(
+            simulationErrorMessage(
+              error,
+              'De 3D-weergave kon niet starten. Je show blijft beschikbaar; controleer WebGL en probeer opnieuw.',
+            ),
+          )
+        }
+      })
+      .catch((error) => {
+        if (cancelled) return
+        setPreviewError(
+          simulationErrorMessage(
+            error,
+            'De 3D-weergave kon niet laden. Je show blijft beschikbaar; controleer WebGL en probeer opnieuw.',
+          ),
+        )
+      })
     return () => {
-      view.dispose()
-      simulator.current = null
+      cancelled = true
+      view?.dispose()
+      if (simulator.current === view) simulator.current = null
     }
   }, [workspace, liveSource, show.fixtures, show.bandMembers, previewRetry])
   useEffect(
@@ -707,18 +726,20 @@ export default function App() {
             />
             {/* Keep proposals and in-flight requests intact when browsing another design category. */}
             <div hidden={workspace !== 'design' || designSection !== 'ai'}>
-              <DesignAssistant
-                {...simulationControls}
-                show={show}
-                onAccept={acceptDesign}
-                onBandProfileChange={(bandProfile) =>
-                  setShow((current) => {
-                    const { bandProfile: _previous, ...rest } = current
-                    return bandProfile ? { ...rest, bandProfile } : rest
-                  })
-                }
-                active={workspace === 'design' && designSection === 'ai'}
-              />
+              <Suspense fallback={<p className="muted">AI-ontwerp laden…</p>}>
+                <DesignAssistant
+                  {...simulationControls}
+                  show={show}
+                  onAccept={acceptDesign}
+                  onBandProfileChange={(bandProfile) =>
+                    setShow((current) => {
+                      const { bandProfile: _previous, ...rest } = current
+                      return bandProfile ? { ...rest, bandProfile } : rest
+                    })
+                  }
+                  active={workspace === 'design' && designSection === 'ai'}
+                />
+              </Suspense>
             </div>
           </>
         )}
@@ -728,24 +749,28 @@ export default function App() {
         </SidePanel>
         {workspace === 'audio' && <AudioInputSettings show={show} onChange={setShow} />}
         <div className={workspace === 'live' ? 'live-workspace-body' : undefined}>
-          <div className={workspace === 'live' ? 'live-audio-region' : undefined} hidden={workspace === 'runtime'}>
-            <AudioStudio
-              show={show}
-              {...simulationControls}
-              onCameraChange={onCameraChange}
-              active={workspace === 'audio' || workspace === 'live' || workspace === 'runtime'}
-              onConfigure={() => setWorkspace('audio')}
-              live={workspace === 'live' || workspace === 'runtime'}
-              runtime={(workspace === 'live' || workspace === 'runtime') && liveSource === 'runtime'}
-              sourceRef={audioSource}
-              selectedLiveLookId={state.activeLookId}
-              linkedGroups={(id) =>
-                (workspace === 'live' || workspace === 'runtime') && liveSource === 'runtime'
-                  ? (runtimeAudioGroups.current?.(id) ?? [id])
-                  : linkedGroupIds(show, liveControls, id)
-              }
-            />
-          </div>
+          {(workspace === 'audio' || workspace === 'live' || workspace === 'runtime') && (
+            <div className={workspace === 'live' ? 'live-audio-region' : undefined} hidden={workspace === 'runtime'}>
+              <Suspense fallback={<p className="muted">Audio laden…</p>}>
+                <AudioStudio
+                  show={show}
+                  {...simulationControls}
+                  onCameraChange={onCameraChange}
+                  active
+                  onConfigure={() => setWorkspace('audio')}
+                  live={workspace === 'live' || workspace === 'runtime'}
+                  runtime={(workspace === 'live' || workspace === 'runtime') && liveSource === 'runtime'}
+                  sourceRef={audioSource}
+                  selectedLiveLookId={state.activeLookId}
+                  linkedGroups={(id) =>
+                    (workspace === 'live' || workspace === 'runtime') && liveSource === 'runtime'
+                      ? (runtimeAudioGroups.current?.(id) ?? [id])
+                      : linkedGroupIds(show, liveControls, id)
+                  }
+                />
+              </Suspense>
+            </div>
+          )}
 
           {workspace === 'start' || workspace === 'stage' || workspace === 'audio' ? null : workspace === 'patch' ? (
             <PatchWorkspace show={show} onChange={setShow} onDirtyChange={onPatchDirtyChange} />
@@ -869,16 +894,18 @@ export default function App() {
               )}
               {designSection === 'looks' && (
                 <>
-                  <LookStudio
-                    {...simulationControls}
-                    onCameraChange={onCameraChange}
-                    show={show}
-                    onChange={setShow}
-                    bpm={previewBpm}
-                    onBpmChange={setPreviewBpm}
-                    selectedLookId={rehearsal.activeLookId ?? show.activeLookId}
-                    onSelectLook={(id) => setRehearsal((current) => followRehearsalLook(current, id))}
-                  />
+                  <Suspense fallback={<p className="muted">Looks laden…</p>}>
+                    <LookStudio
+                      {...simulationControls}
+                      onCameraChange={onCameraChange}
+                      show={show}
+                      onChange={setShow}
+                      bpm={previewBpm}
+                      onBpmChange={setPreviewBpm}
+                      selectedLookId={rehearsal.activeLookId ?? show.activeLookId}
+                      onSelectLook={(id) => setRehearsal((current) => followRehearsalLook(current, id))}
+                    />
+                  </Suspense>
                   <button className="studio-audition-link" onClick={() => setWorkspace('audition')}>
                     Open Testlab voor losse animaties en kleuren →
                   </button>
@@ -896,17 +923,19 @@ export default function App() {
               }}
             />
           ) : (workspace === 'live' || workspace === 'runtime') && liveSource === 'runtime' ? (
-            <RuntimeLiveView
-              show={show}
-              {...simulationControls}
-              management={workspace === 'runtime'}
-              onNavigate={setWorkspace}
-              audioSource={audioSource}
-              audioGroupTargets={runtimeAudioGroups}
-              onConfigure={() => setWorkspace('control')}
-              onOpenConnections={() => setWorkspace('runtime')}
-              onShortcutHelp={() => setShortcutsOpen(true)}
-            />
+            <Suspense fallback={<p className="muted">Livesessie laden…</p>}>
+              <RuntimeLiveView
+                show={show}
+                {...simulationControls}
+                management={workspace === 'runtime'}
+                onNavigate={setWorkspace}
+                audioSource={audioSource}
+                audioGroupTargets={runtimeAudioGroups}
+                onConfigure={() => setWorkspace('control')}
+                onOpenConnections={() => setWorkspace('runtime')}
+                onShortcutHelp={() => setShortcutsOpen(true)}
+              />
+            </Suspense>
           ) : (
             <>
               {workspace === 'audition' && (

@@ -10,6 +10,7 @@ import { saveLibraryRecovery } from './show-library'
 import { activePackageKey } from './active-package'
 import { DesignNavigation } from './DesignNavigation'
 import { WorkspaceNavigation } from './WorkspaceNavigation'
+import { RehearsalControls } from './RehearsalControls'
 vi.mock('./show-library', async (original) => ({
   ...(await original<typeof import('./show-library')>()),
   saveLibraryRecovery: vi.fn(async () => ({ id: 'recovery' })),
@@ -56,14 +57,22 @@ interface Props {
   onRestoreVersion?: (id: string) => Promise<boolean>
   versions?: ShowPackage['versions']
 }
+const shellComponents = [WorkspaceNavigation, DesignNavigation, RehearsalControls]
+const rendersShellComponent = (child: { type: unknown }) => shellComponents.includes(child.type as never)
 const text = (node: ReactNode): string =>
   Children.toArray(node)
-    .map((child) => (isValidElement<Props>(child) ? text(child.props.children) : String(child)))
+    .map((child) =>
+      isValidElement<Props>(child)
+        ? rendersShellComponent(child)
+          ? text((child.type as (props: Props) => ReactNode)(child.props))
+          : text(child.props.children)
+        : String(child),
+    )
     .join('')
 function find(node: ReactNode, match: (props: Props) => boolean): Props {
   for (const child of Children.toArray(node)) {
     if (!isValidElement<Props>(child)) continue
-    if (child.type === WorkspaceNavigation || child.type === DesignNavigation) {
+    if (rendersShellComponent(child)) {
       try {
         return find((child.type as (props: Props) => ReactNode)(child.props), match)
       } catch {
@@ -83,7 +92,7 @@ function buttonLabels(node: ReactNode): string[] {
   return Children.toArray(node).flatMap((child) =>
     !isValidElement<Props>(child)
       ? []
-      : child.type === WorkspaceNavigation || child.type === DesignNavigation
+      : rendersShellComponent(child)
         ? buttonLabels((child.type as (props: Props) => ReactNode)(child.props))
         : [...(child.props.onClick ? [text(child.props.children)] : []), ...buttonLabels(child.props.children)],
   )

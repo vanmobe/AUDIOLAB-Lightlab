@@ -111,6 +111,7 @@ Current user priority: continuous sACN/Art-Net show output is now requested and 
 
 - Node.js and npm run the local web application.
 - `npm run dev` starts development mode; `npm run build` produces a production build; `npm run test` validates domain behavior.
+- TypeScript 7 validates browser asset imports through `src/assets.d.ts`; the Node-side config deliberately includes JavaScript so the shared local-runtime manager retains inferred types. Vite 8 and Vitest 5 require the supported Node 22.23.1 baseline.
 - Node 22.23.1 (`.nvmrc`) and .NET SDK 10.0.103 (`global.json`) are the
   supported development toolchain. `npm run verify` is the required local and
   GitHub CI check: frontend/launcher tests, production web/worker build and

@@ -8,6 +8,8 @@ import { initialShow } from './seed'
 import { createShowPackage, createVersion, type ShowPackage } from './show-package'
 import { saveLibraryRecovery } from './show-library'
 import { activePackageKey } from './active-package'
+import { DesignNavigation } from './DesignNavigation'
+import { WorkspaceNavigation } from './WorkspaceNavigation'
 vi.mock('./show-library', async (original) => ({
   ...(await original<typeof import('./show-library')>()),
   saveLibraryRecovery: vi.fn(async () => ({ id: 'recovery' })),
@@ -61,6 +63,13 @@ const text = (node: ReactNode): string =>
 function find(node: ReactNode, match: (props: Props) => boolean): Props {
   for (const child of Children.toArray(node)) {
     if (!isValidElement<Props>(child)) continue
+    if (child.type === WorkspaceNavigation || child.type === DesignNavigation) {
+      try {
+        return find((child.type as (props: Props) => ReactNode)(child.props), match)
+      } catch {
+        /* search siblings */
+      }
+    }
     if (match(child.props)) return child.props
     try {
       return find(child.props.children, match)
@@ -74,7 +83,9 @@ function buttonLabels(node: ReactNode): string[] {
   return Children.toArray(node).flatMap((child) =>
     !isValidElement<Props>(child)
       ? []
-      : [...(child.props.onClick ? [text(child.props.children)] : []), ...buttonLabels(child.props.children)],
+      : child.type === WorkspaceNavigation || child.type === DesignNavigation
+        ? buttonLabels((child.type as (props: Props) => ReactNode)(child.props))
+        : [...(child.props.onClick ? [text(child.props.children)] : []), ...buttonLabels(child.props.children)],
   )
 }
 function setup() {

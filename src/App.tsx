@@ -57,6 +57,8 @@ import { chooseRehearsalItem, followRehearsalLook, rehearsalPreview, type Rehear
 import { LiveShortcutHelp } from './LiveShortcutHelp'
 import { adjacentLookId, isLiveShortcutTextInput, liveShortcutAction } from './live-shortcuts'
 import { LiveStageOverlay } from './LiveStageOverlay'
+import { WorkspaceNavigation, type Workspace } from './WorkspaceNavigation'
+import { DesignNavigation, type DesignSection } from './DesignNavigation'
 
 // Access to the browser Storage object itself may throw; defer it into the guarded loader.
 const activeStorage = {
@@ -80,9 +82,7 @@ export default function App() {
   const [runtimeMayContinue, setRuntimeMayContinue] = useState(false)
   const [rehearsal, setRehearsal] = useState<RehearsalState>({ mode: 'automation', activeLookId: show.activeLookId })
   const [beats, setBeats] = useState(0)
-  const [workspace, setWorkspaceState] = useState<
-    'audition' | 'patch' | 'design' | 'control' | 'audio' | 'stage' | 'start' | 'live' | 'runtime'
-  >('start')
+  const [workspace, setWorkspaceState] = useState<Workspace>('start')
   const patchDirty = useRef(false)
   const onPatchDirtyChange = useCallback((dirty: boolean) => {
     patchDirty.current = dirty
@@ -148,7 +148,7 @@ export default function App() {
   })
   const simulationControls = { simulationSettings, onSimulationSettingsChange: setSimulationSettings }
   const onCameraChange = (camera: ShowDocument['camera']) => setShow((current) => ({ ...current, camera }))
-  const [designSection, setDesignSection] = useState<'ai' | 'colors' | 'programs' | 'looks'>('ai')
+  const [designSection, setDesignSection] = useState<DesignSection>('ai')
   const [versions, setVersions] = useState<ShowVersion[]>(initialPackage.bundle.versions)
   const [libraryOpen, setLibraryOpen] = useState(false)
   const [packageBusy, setPackageBusy] = useState(false)
@@ -627,54 +627,7 @@ export default function App() {
             onDeleteVersion={deleteLibraryVersion}
           />
         )}
-        <nav className="workspace-nav" aria-label="Showworkflow">
-          {(
-            [
-              ['start', 'Overzicht'],
-              ['stage', 'Setup'],
-              ['design', 'Ontwerpen'],
-              ['live', 'Live'],
-              ['runtime', 'Runtime'],
-            ] as const
-          ).map(([id, label]) => {
-            const active =
-              workspace === id ||
-              (id === 'stage' && ['patch', 'control', 'audio'].includes(workspace)) ||
-              (id === 'design' && workspace === 'audition')
-            return (
-              <button
-                key={id}
-                data-workspace-target={id}
-                aria-current={active ? 'step' : undefined}
-                className={active ? 'active' : ''}
-                onClick={() => setWorkspace(id)}
-              >
-                {label}
-              </button>
-            )
-          })}
-        </nav>
-        {['stage', 'patch', 'control', 'audio'].includes(workspace) && (
-          <nav className="workspace-nav setup-nav" aria-label="Setup">
-            {(
-              [
-                ['stage', 'Podium'],
-                ['patch', 'Patch & netwerk'],
-                ['control', 'Bedieningspaneel'],
-                ['audio', 'Audio'],
-              ] as const
-            ).map(([id, label]) => (
-              <button
-                key={id}
-                aria-current={workspace === id ? 'page' : undefined}
-                className={workspace === id ? 'active' : ''}
-                onClick={() => setWorkspace(id)}
-              >
-                {label}
-              </button>
-            ))}
-          </nav>
-        )}
+        <WorkspaceNavigation workspace={workspace} onWorkspaceChange={setWorkspace} />
         {workspace === 'start' && (
           <ShowDashboard
             show={show}
@@ -747,36 +700,14 @@ export default function App() {
         )}
         {(workspace === 'design' || workspace === 'audition') && (
           <>
-            <nav className="design-library-nav" aria-label="Ontwerpbibliotheek">
-              {(
-                [
-                  ['ai', 'Maak met AI'],
-                  ['colors', `Kleuren · ${show.colorProfiles.length}`],
-                  ['programs', `Animaties · ${show.programs.length}`],
-                  ['looks', `Looks · ${show.looks.length}`],
-                ] as const
-              ).map(([id, label]) => (
-                <button
-                  key={id}
-                  className={workspace === 'design' && designSection === id ? 'active' : ''}
-                  aria-current={workspace === 'design' && designSection === id ? 'page' : undefined}
-                  onClick={() => {
-                    setDesignSection(id)
-                    setWorkspace('design')
-                  }}
-                >
-                  {label}
-                </button>
-              ))}
-              <button
-                className={workspace === 'audition' ? 'active' : ''}
-                aria-current={workspace === 'audition' ? 'page' : undefined}
-                onClick={() => setWorkspace('audition')}
-              >
-                Testlab
-              </button>
-              <button onClick={() => setShowSettingsOpen(true)}>Showinstellingen</button>
-            </nav>
+            <DesignNavigation
+              workspace={workspace}
+              section={designSection}
+              show={show}
+              onWorkspaceChange={setWorkspace}
+              onSectionChange={setDesignSection}
+              onOpenShowSettings={() => setShowSettingsOpen(true)}
+            />
             {/* Keep proposals and in-flight requests intact when browsing another design category. */}
             <div hidden={workspace !== 'design' || designSection !== 'ai'}>
               <DesignAssistant

@@ -120,6 +120,8 @@ package:local` is a deliberate host-native release action, not routine
   validation.
 - The public source repository is `vanmobe/AUDIOLAB-Lightlab`. GitHub Actions
   `.github/workflows/ci.yml` is the canonical pull-request validation contract.
+  Dependabot checks npm and both NuGet projects weekly; GitHub dependency alerts,
+  automatic security-update pull requests and default CodeQL analysis are enabled.
   GitHub Project automation is not configured; add
   `.project/github-project-config.json` only when that delivery workflow is
   introduced.

@@ -10,9 +10,8 @@ import { ShowLibrary } from './ShowLibrary'
 import { saveLibraryRecovery } from './show-library'
 import { loadActivePackage, persistActivePackage } from './active-package'
 import { ShowRegieSettings } from './ShowRegieSettings'
-import { CoverageStatus, safetyLabel } from './CoverageStatus'
+import { safetyLabel } from './CoverageStatus'
 import { createLookTransitionPlayer, type TransitionResult } from './look-transitions'
-import { TransitionStatus } from './TransitionStatus'
 import { LiveLookLibrary } from './LiveLookLibrary'
 import { ShowDashboard } from './ShowDashboard'
 import { lookLayerSummary } from './LookEditor'
@@ -41,8 +40,6 @@ import { initialShow } from './seed'
 import { StageSimulator } from './simulator'
 import { simulationErrorMessage } from './simulation-errors'
 import { ValidatedNameInput } from './ValidatedNameInput'
-import { SimulationControls } from './SimulationControls'
-import { stageCameraMarker } from './stage-camera'
 import { advancePreviewBeat } from './preview-clock'
 import {
   defaultSimulationHaze,
@@ -56,9 +53,9 @@ import { createShowPackage, createVersion, parseShowPackage, type ShowVersion, t
 import { chooseRehearsalItem, followRehearsalLook, rehearsalPreview, type RehearsalState } from './rehearsal'
 import { LiveShortcutHelp } from './LiveShortcutHelp'
 import { adjacentLookId, isLiveShortcutTextInput, liveShortcutAction } from './live-shortcuts'
-import { LiveStageOverlay } from './LiveStageOverlay'
 import { WorkspaceNavigation, type Workspace } from './WorkspaceNavigation'
 import { DesignNavigation, type DesignSection } from './DesignNavigation'
+import { BrowserLiveStage } from './BrowserLiveStage'
 
 // Access to the browser Storage object itself may throw; defer it into the guarded loader.
 const activeStorage = {
@@ -922,38 +919,22 @@ export default function App() {
                 </div>
               )}
               <section className="workspace">
-                <div className={rehearsing ? undefined : 'live-stage-column'}>
-                  <div className="stage-panel">
-                    <div className="stage-label">
-                      <span>{stageCameraMarker(show.camera).label}</span>
-                      <span>
-                        {displayedState.mode === 'automation'
-                          ? rehearsing
-                            ? `${rehearsal.programId && preview.program ? animationLabel(preview.program) : (preview.look?.name ?? 'Geen Look')} · ${preview.profile?.name ?? 'Geen kleurprofiel'}`
-                            : activeLook?.name
-                          : displayedState.mode}
-                      </span>
-                    </div>
-                    <div className="stage" ref={stage} />
-                    <LiveStageOverlay mode={displayedState.mode} output="SIMULATIE" />
-                    <p className="caption">
-                      Conceptsimulatie: kleur, intensiteit, chase en haze. Geen fysieke DMX-output.
-                    </p>
-                  </div>
-                  <SimulationControls show={show} {...simulationControls} onCameraChange={onCameraChange} />
-                  <TransitionStatus show={displayedShow} transition={rendered.transition} />
-                  <CoverageStatus
-                    show={displayedShow}
-                    frame={frame}
-                    transitioning={rendered.transition?.phase === 'fading'}
-                  />
-                  {previewError && (
-                    <div role="alert" className="app-notice">
-                      <p>{previewError}</p>
-                      <button onClick={() => setPreviewRetry((value) => value + 1)}>3D-weergave opnieuw starten</button>
-                    </div>
-                  )}
-                </div>
+                <BrowserLiveStage
+                  show={show}
+                  stageRef={stage}
+                  rehearsing={rehearsing}
+                  displayedState={displayedState}
+                  displayedShow={displayedShow}
+                  rehearsal={rehearsal}
+                  preview={preview}
+                  activeLook={activeLook}
+                  frame={frame}
+                  transition={rendered.transition}
+                  previewError={previewError}
+                  onRetryPreview={() => setPreviewRetry((value) => value + 1)}
+                  simulationControls={simulationControls}
+                  onCameraChange={onCameraChange}
+                />
                 <aside className="control-panel">
                   {rehearsing && (
                     <section className="rehearsal-controls" aria-label="Vrij combineren">

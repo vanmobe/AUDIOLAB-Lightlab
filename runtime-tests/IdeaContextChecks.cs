@@ -1,9 +1,11 @@
 using System.Text.Json.Nodes;
 using Lightflow.Runtime;
 
-static class IdeaContextChecks {
+static class IdeaContextChecks
+{
     static void Check(bool ok, string message) { if (!ok) throw new Exception(message); }
-    public static async Task Run() {
+    public static async Task Run()
+    {
         var show = JsonNode.Parse("""
         {
           "groups":[{"id":"wash","name":"Wash"}],

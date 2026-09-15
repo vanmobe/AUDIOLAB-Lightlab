@@ -9,29 +9,34 @@ public sealed record PlaybackAudioCommand(int Version, string SessionId, string 
     long? Sequence = null, PlaybackAudioAnalysis? Analysis = null, PlaybackAudioPosition? Position = null);
 public sealed record PlaybackAudioStatus(int Version, string? SessionId, string? AudioId, string State, long Sequence, string? Error);
 
-public sealed partial class PlaybackSession {
+public sealed partial class PlaybackSession
+{
     PlaybackAudioStatus audioStatus = new(1, null, null, "detached", 0, null);
     PlaybackAudioPosition? audioPosition;
     double audioDuration;
     long audioAnchor;
     public PlaybackAudioStatus AudioStatus => Volatile.Read(ref audioStatus);
-    void ResetAudio(string? sessionId) {
+    void ResetAudio(string? sessionId)
+    {
         audioPosition = null; audioDuration = 0;
         Volatile.Write(ref audioStatus, new(1, sessionId, null, "detached", 0, null));
     }
     static bool Between(double value, double min, double max) => double.IsFinite(value) && value >= min && value <= max;
-    static void ValidateAnalysis(PlaybackAudioAnalysis analysis) {
+    static void ValidateAnalysis(PlaybackAudioAnalysis analysis)
+    {
         if (!Between(analysis.Duration, .001, 600) || analysis.Kicks is null || analysis.Kicks.Length > 7500
             || !Between(analysis.Confidence, 0, 1) || (analysis.Bpm is double bpm && !Between(bpm, 1, 1000)))
             throw new ArgumentException("Ongeldige audioanalyse: maximaal tien minuten en 7500 kicks.");
         double previous = -1;
-        foreach (var kick in analysis.Kicks) {
+        foreach (var kick in analysis.Kicks)
+        {
             if (kick is null || !Between(kick.Time, 0, analysis.Duration) || kick.Time <= previous || !Between(kick.Strength, 0, 1))
                 throw new ArgumentException("Ongeldige of ongeordende kickdetecties.");
             previous = kick.Time;
         }
     }
-    void ValidatePosition(PlaybackAudioPosition position, double duration) {
+    void ValidatePosition(PlaybackAudioPosition position, double duration)
+    {
         if (!Between(position.Seconds, 0, duration) || position.Mode is not ("tempo" or "kicks") || !BpmValid(position.Bpm)
             || !Between(position.DecayMs, 100, 1000) || !Between(position.Floor, 0, 1) || position.Reactions is null)
             throw new ArgumentException("Ongeldige audio-afspeelinstellingen.");
@@ -39,14 +44,17 @@ public sealed partial class PlaybackSession {
         if (position.Reactions.Count > groups.Count || position.Reactions.Any(pair => !groups.Contains(pair.Key) || pair.Value is not ("look" or "pulse" or "step" or "static")))
             throw new ArgumentException("Audioreacties verwijzen naar onbekende groepen of effecten.");
     }
-    PlaybackAudioPosition? CurrentAudioPosition() => audioPosition is null ? null : audioPosition with {
+    PlaybackAudioPosition? CurrentAudioPosition() => audioPosition is null ? null : audioPosition with
+    {
         Seconds = Math.Min(audioDuration, audioPosition.Seconds + (audioPosition.Playing ? time.GetElapsedTime(audioAnchor).TotalSeconds : 0))
     };
-    async Task CheckAudioDeadlineAsync() {
+    async Task CheckAudioDeadlineAsync()
+    {
         if (audioStatus.State != "following" || time.GetElapsedTime(audioAnchor).TotalSeconds <= 1) return;
         await StopAudioAsync("lost", "Audioverbinding verloren. Uitvoer is uitgeschakeld; koppel audio opnieuw en bevestig uitvoer expliciet.");
     }
-    async Task StopAudioAsync(string nextState, string? error) {
+    async Task StopAudioAsync(string nextState, string? error)
+    {
         await output.DisarmAsync();
         audioPosition = null; audioDuration = 0;
         await evaluator!.ConfigureAudioAsync(null, lifetime.Token);
@@ -54,14 +62,17 @@ public sealed partial class PlaybackSession {
         Publish(status with { Mode = "blackout", OutputSent = false });
         Volatile.Write(ref audioStatus, audioStatus with { State = nextState, AudioId = nextState == "detached" ? null : audioStatus.AudioId, Error = error });
     }
-    public async Task<PlaybackAudioStatus> AudioCommandAsync(PlaybackAudioCommand command, CancellationToken cancellationToken) {
+    public async Task<PlaybackAudioStatus> AudioCommandAsync(PlaybackAudioCommand command, CancellationToken cancellationToken)
+    {
         await gate.WaitAsync(cancellationToken);
-        try {
+        try
+        {
             if (command.Version != 1 || command.AudioId is null || command.AudioId.Length != 32 || command.AudioId.Any(c => !char.IsAsciiHexDigit(c)))
                 throw new ArgumentException("Ongeldige audio-opdracht of bronidentificatie.");
             if (status.Status != "running" || command.SessionId != status.SessionId) throw new PlaybackConflictException();
             await CheckAudioDeadlineAsync();
-            switch (command.Command) {
+            switch (command.Command)
+            {
                 case "attach":
                     if (command.Sequence != 0 || command.Analysis is null || command.Position is null) throw new ArgumentException("Koppelen vereist analyse, positie en volgnummer nul.");
                     if (audioStatus.State == "following" || output.Status.State == "armed") throw new PlaybackConflictException();
@@ -89,8 +100,11 @@ public sealed partial class PlaybackSession {
             Volatile.Write(ref audioStatus, new(1, status.SessionId, command.AudioId, "following", command.Sequence!.Value, null));
             await SampleAsync(lifetime.Token);
             return audioStatus;
-        } catch (Exception error) when (error is not (ArgumentException or PlaybackConflictException)) {
+        }
+        catch (Exception error) when (error is not (ArgumentException or PlaybackConflictException))
+        {
             await FaultAsync("Audio kon niet veilig geëvalueerd worden. Uitvoer is uitgeschakeld."); throw;
-        } finally { gate.Release(); }
+        }
+        finally { gate.Release(); }
     }
 }

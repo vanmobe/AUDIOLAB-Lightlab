@@ -1,14 +1,17 @@
 namespace Lightflow.Runtime;
 
-public static class DmxPackets {
-    public static byte[] ArtNet(int universe, byte[] dmx, byte sequence = 0) {
+public static class DmxPackets
+{
+    public static byte[] ArtNet(int universe, byte[] dmx, byte sequence = 0)
+    {
         if (universe is < 1 or > 32768 || dmx is null || dmx.Length != 512) throw new ArgumentException("Invalid ArtDmx universe or payload.");
         var packet = new byte[530]; "Art-Net\0"u8.CopyTo(packet); packet[9] = 0x50; packet[11] = 14;
         packet[12] = sequence;
         packet[14] = (byte)(universe - 1); packet[15] = (byte)((universe - 1) >> 8); packet[16] = 2;
         dmx.CopyTo(packet, 18); return packet;
     }
-    public static byte[] Sacn(int universe, byte[] dmx, Guid sourceCid, byte sequence, bool terminated = false) {
+    public static byte[] Sacn(int universe, byte[] dmx, Guid sourceCid, byte sequence, bool terminated = false)
+    {
         if (universe is < 1 or > 63999 || dmx is null || dmx.Length != 512) throw new ArgumentException("Invalid sACN universe or payload.");
         var packet = new byte[638]; packet[1] = 0x10;
         "ASC-E1.17\0\0\0"u8.CopyTo(packet.AsSpan(4));

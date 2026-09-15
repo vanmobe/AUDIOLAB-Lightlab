@@ -13,7 +13,8 @@ public sealed record PlaybackPreview(int Version, string SessionId, PlaybackStat
 public sealed class PlaybackConflictException : Exception;
 
 /// <summary>Runtime-owned clock and compiler; physical output remains a separate explicit session-fenced opt-in.</summary>
-public sealed partial class PlaybackSession(Func<IShowEvaluator> createEvaluator, TimeProvider? timeProvider = null, PlaybackOutput? output = null) : IAsyncDisposable {
+public sealed partial class PlaybackSession(Func<IShowEvaluator> createEvaluator, TimeProvider? timeProvider = null, PlaybackOutput? output = null) : IAsyncDisposable
+{
     readonly PlaybackOutput output = output ?? new();
     readonly TimeProvider time = timeProvider ?? TimeProvider.System;
     readonly SemaphoreSlim gate = new(1, 1);
@@ -39,9 +40,11 @@ public sealed partial class PlaybackSession(Func<IShowEvaluator> createEvaluator
     static bool BpmValid(double value) => double.IsFinite(value) && value is >= 30 and <= 240;
     double Beat() => anchorBeat + time.GetElapsedTime(anchor).TotalSeconds * status.Bpm / 60;
     void Publish(PlaybackStatus next) => Volatile.Write(ref status, next);
-    public async Task<PlaybackStatus> StartAsync(PlaybackStart request, CancellationToken cancellationToken) {
+    public async Task<PlaybackStatus> StartAsync(PlaybackStart request, CancellationToken cancellationToken)
+    {
         await gate.WaitAsync(cancellationToken);
-        try {
+        try
+        {
             if (status.Status is "running" or "starting") throw new PlaybackConflictException();
             if (request.Version != 1 || !BpmValid(request.Bpm) || string.IsNullOrWhiteSpace(request.LookId) || request.LookId.Length > 1024 || request.Show.ValueKind != JsonValueKind.Object)
                 throw new ArgumentException("Kies een geldige show, Look en BPM tussen 30 en 240.");
@@ -50,7 +53,8 @@ public sealed partial class PlaybackSession(Func<IShowEvaluator> createEvaluator
             Publish(new(1, sessionId, "starting", "automation", request.LookId, request.Bpm, 0, 0, 0, false, null));
             Volatile.Write(ref snapshot, null);
             Volatile.Write(ref preview, null); Volatile.Write(ref loadedShow, null);
-            try {
+            try
+            {
                 var show = request.Show.Clone();
                 // Project only physical identifiers/addresses. Never accept caller-supplied channel metadata.
                 var fixtureArray = show.GetProperty("fixtures");
@@ -67,7 +71,8 @@ public sealed partial class PlaybackSession(Func<IShowEvaluator> createEvaluator
                 if (!looks.Contains(request.LookId)) throw new ArgumentException("De gekozen Look ontbreekt in de show.");
                 evaluator = createEvaluator();
                 await evaluator.LoadAsync(show, cancellationToken);
-                live = JsonSerializer.SerializeToElement(new {
+                live = JsonSerializer.SerializeToElement(new
+                {
                     controls = new { overrides = new Dictionary<string, object>(), links = Array.Empty<string[]>() },
                     groupIntensities = show.GetProperty("groups").EnumerateArray().ToDictionary(g => g.GetProperty("id").GetString()!, g => g.GetProperty("intensity").GetDouble()),
                     colorLockId = (string?)null
@@ -80,22 +85,28 @@ public sealed partial class PlaybackSession(Func<IShowEvaluator> createEvaluator
                 Publish(status with { Status = "running" });
                 Volatile.Write(ref preview, preview! with { Status = status });
                 pump = Task.Run(() => PumpAsync(sessionId));
-            } catch (Exception) {
+            }
+            catch (Exception)
+            {
                 await FaultAsync("De runtime kon deze show niet laden of coderen. Controleer de patch, Look en evaluatorinstallatie.");
                 throw;
             }
             return status;
-        } finally { gate.Release(); }
+        }
+        finally { gate.Release(); }
     }
-    public async Task<PlaybackStatus> CommandAsync(PlaybackCommand command, CancellationToken cancellationToken) {
+    public async Task<PlaybackStatus> CommandAsync(PlaybackCommand command, CancellationToken cancellationToken)
+    {
         await gate.WaitAsync(cancellationToken);
-        try {
+        try
+        {
             if (command.Version != 1) throw new ArgumentException("Ongeldige opdrachtversie.");
             if (command.SessionId != status.SessionId || status.SessionId is null) throw new PlaybackConflictException();
             var liveFields = command.ExpectedRevision is not null || command.Controls.ValueKind != JsonValueKind.Undefined
                 || command.GroupIntensities.ValueKind != JsonValueKind.Undefined || command.ColorLockId.ValueKind != JsonValueKind.Undefined;
             if (command.Command != "live" && liveFields) throw new ArgumentException("Live-instellingen horen bij een live-opdracht.");
-            if (command.Command == "stop") {
+            if (command.Command == "stop")
+            {
                 if (command.LookId is not null || command.Bpm is not null || command.Mode is not null) throw new ArgumentException("Stop heeft geen extra instellingen.");
                 await output.DisarmAsync();
                 await ReleaseEvaluator(); Volatile.Write(ref snapshot, null); patch = null; looks.Clear();
@@ -104,12 +115,15 @@ public sealed partial class PlaybackSession(Func<IShowEvaluator> createEvaluator
             }
             if (status.Status != "running") throw new PlaybackConflictException();
             var beat = Beat();
-            switch (command.Command) {
+            switch (command.Command)
+            {
                 case "look" when command.LookId is not null && looks.Contains(command.LookId) && command.Bpm is null && command.Mode is null:
                     heldBeat = null;
-                    live = JsonSerializer.SerializeToElement(new {
+                    live = JsonSerializer.SerializeToElement(new
+                    {
                         controls = new { overrides = new Dictionary<string, object>(), links = live.GetProperty("controls").GetProperty("links") },
-                        groupIntensities = live.GetProperty("groupIntensities"), colorLockId = (string?)null
+                        groupIntensities = live.GetProperty("groupIntensities"),
+                        colorLockId = (string?)null
                     });
                     Publish(status with { LookId = command.LookId, Mode = "automation" }); break;
                 case "bpm" when command.Bpm is double bpm && BpmValid(bpm) && command.LookId is null && command.Mode is null:
@@ -135,15 +149,19 @@ public sealed partial class PlaybackSession(Func<IShowEvaluator> createEvaluator
             try { await SampleAsync(lifetime.Token); }
             catch (Exception) { await FaultAsync("De evaluator is gestopt of gaf geen geldig frame. Start de runtime opnieuw."); throw; }
             return status;
-        } finally { gate.Release(); }
+        }
+        finally { gate.Release(); }
     }
-    public async Task<PlaybackOutputStatus> OutputCommandAsync(PlaybackOutputCommand command, CancellationToken cancellationToken) {
+    public async Task<PlaybackOutputStatus> OutputCommandAsync(PlaybackOutputCommand command, CancellationToken cancellationToken)
+    {
         await gate.WaitAsync(cancellationToken);
-        try {
+        try
+        {
             if (command.Version != 1 || command.Command is not ("arm" or "disarm") || (command.Command == "arm" && !command.Confirmed)
                 || (command.Command == "disarm" && command.Confirmed)) throw new ArgumentException("Bevestig fysieke uitvoer expliciet; uitschakelen vereist geen bevestiging.");
             if (command.SessionId != status.SessionId || status.SessionId is null) throw new PlaybackConflictException();
-            if (command.Command == "arm") {
+            if (command.Command == "arm")
+            {
                 await CheckAudioDeadlineAsync();
                 if (audioStatus.State == "lost") throw new PlaybackConflictException();
                 if (status.Status != "running" || patch is null || snapshot is null) throw new PlaybackConflictException();
@@ -154,15 +172,19 @@ public sealed partial class PlaybackSession(Func<IShowEvaluator> createEvaluator
                 // After arming is accepted it belongs to the runtime, not the HTTP request lifetime.
                 var sent = await output.SendAsync(snapshot.Inspection.Universes);
                 Publish(status with { OutputSent = sent });
-            } else {
+            }
+            else
+            {
                 await output.DisarmAsync();
                 Publish(status with { OutputSent = false });
             }
             if (preview is not null) Volatile.Write(ref preview, preview with { Status = status });
             return output.Status;
-        } finally { gate.Release(); }
+        }
+        finally { gate.Release(); }
     }
-    async Task SampleAsync(CancellationToken cancellationToken) {
+    async Task SampleAsync(CancellationToken cancellationToken)
+    {
         await CheckAudioDeadlineAsync();
         var audio = CurrentAudioPosition();
         var beat = audio is null ? Beat() : audio.Seconds * audio.Bpm / 60;
@@ -178,33 +200,42 @@ public sealed partial class PlaybackSession(Func<IShowEvaluator> createEvaluator
         Volatile.Write(ref preview, new(1, status.SessionId!, status, frame, live.GetProperty("controls"), live.GetProperty("groupIntensities"),
             live.GetProperty("colorLockId").ValueKind == JsonValueKind.Null ? null : live.GetProperty("colorLockId").GetString(), revision, evaluator.Transition));
     }
-    async Task PumpAsync(string id) {
+    async Task PumpAsync(string id)
+    {
         // Delay after each sample avoids accumulated ticks when evaluation is slower than 40Hz.
-        while (!lifetime.IsCancellationRequested) {
-            try {
+        while (!lifetime.IsCancellationRequested)
+        {
+            try
+            {
                 await Task.Delay(TimeSpan.FromMilliseconds(25), time, lifetime.Token);
                 await gate.WaitAsync(lifetime.Token);
-                try {
+                try
+                {
                     if (status.SessionId != id || status.Status != "running") return;
                     try { await SampleAsync(lifetime.Token); }
                     catch (Exception) { await FaultAsync("De evaluator is gestopt of gaf geen geldig frame. Start de runtime opnieuw."); return; }
-                } finally { gate.Release(); }
-            } catch (OperationCanceledException) { return; }
+                }
+                finally { gate.Release(); }
+            }
+            catch (OperationCanceledException) { return; }
         }
     }
-    async Task ReleaseEvaluator() {
+    async Task ReleaseEvaluator()
+    {
         var old = evaluator; evaluator = null;
         // Cleanup failures must not prevent fault/stop from discarding the last playable memory frame.
         if (old is not null) { try { await old.DisposeAsync(); } catch (Exception) { } }
     }
-    async Task FaultAsync(string message) {
+    async Task FaultAsync(string message)
+    {
         await output.DisarmAsync();
         await ReleaseEvaluator(); Volatile.Write(ref snapshot, null); patch = null; looks.Clear();
         ClearLive();
         Publish(status with { Status = "faulted", UniverseCount = 0, OutputSent = false, Error = message });
     }
     void ClearLive() { Volatile.Write(ref preview, null); Volatile.Write(ref loadedShow, null); live = default; ResetAudio(status.SessionId); }
-    public async ValueTask DisposeAsync() {
+    public async ValueTask DisposeAsync()
+    {
         lifetime.Cancel();
         await gate.WaitAsync();
         try { await output.DisarmAsync(); await ReleaseEvaluator(); Volatile.Write(ref snapshot, null); ClearLive(); patch = null; looks.Clear(); Publish(status with { Status = "stopped", UniverseCount = 0, OutputSent = false }); }

@@ -7,7 +7,8 @@ namespace Lightflow.Runtime;
 
 public sealed record PlaybackEngineState(string Mode, string ActiveLookId, double? HeldAtBeats = null);
 public sealed record PlaybackTransition(string Phase, string FromLookId, string ToLookId, double StartAtBeats, double EndAtBeats, double Progress);
-public interface IShowEvaluator : IAsyncDisposable {
+public interface IShowEvaluator : IAsyncDisposable
+{
     PlaybackTransition? Transition => null;
     Task LoadAsync(JsonElement show, CancellationToken cancellationToken);
     Task<InspectionFrame> EvaluateAsync(double beat, PlaybackEngineState state, CancellationToken cancellationToken, JsonElement? live = null);
@@ -18,7 +19,8 @@ public interface IShowEvaluator : IAsyncDisposable {
 }
 
 /// <summary>One supervised evaluator process, with bounded, sequential NDJSON exchanges.</summary>
-public sealed class NodeShowEvaluator : IShowEvaluator {
+public sealed class NodeShowEvaluator : IShowEvaluator
+{
     public PlaybackTransition? Transition { get; private set; }
     readonly HashSet<string> lookIds = [];
     const int MaximumLine = 2 * 1024 * 1024;
@@ -26,9 +28,14 @@ public sealed class NodeShowEvaluator : IShowEvaluator {
     readonly Process process;
     readonly Task stderr;
     int sequence;
-    public NodeShowEvaluator(string workerPath) {
-        var start = new ProcessStartInfo(Environment.GetEnvironmentVariable("LIGHTLAB_NODE_PATH") ?? "node") {
-            UseShellExecute = false, RedirectStandardInput = true, RedirectStandardOutput = true, RedirectStandardError = true,
+    public NodeShowEvaluator(string workerPath)
+    {
+        var start = new ProcessStartInfo(Environment.GetEnvironmentVariable("LIGHTLAB_NODE_PATH") ?? "node")
+        {
+            UseShellExecute = false,
+            RedirectStandardInput = true,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
             CreateNoWindow = true
         };
         start.ArgumentList.Add(Path.GetFullPath(workerPath));
@@ -36,7 +43,8 @@ public sealed class NodeShowEvaluator : IShowEvaluator {
         // Drain diagnostics without retaining or exposing child/user content.
         stderr = Task.Run(async () => { var buffer = new char[4096]; try { while (await process.StandardError.ReadAsync(buffer) > 0) { } } catch (Exception) { } });
     }
-    async Task<JsonElement> ExchangeAsync(object message, string requestId, CancellationToken cancellationToken, bool allowRejection = false) {
+    async Task<JsonElement> ExchangeAsync(object message, string requestId, CancellationToken cancellationToken, bool allowRejection = false)
+    {
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         deadline.CancelAfter(TimeSpan.FromSeconds(2));
         var token = deadline.Token;
@@ -44,7 +52,8 @@ public sealed class NodeShowEvaluator : IShowEvaluator {
         if (Encoding.UTF8.GetByteCount(input) > MaximumLine) throw new InvalidOperationException("Evaluatoraanvraag is te groot.");
         await process.StandardInput.WriteLineAsync(input.AsMemory(), token); await process.StandardInput.FlushAsync(token);
         using var output = new MemoryStream(); var buffer = new byte[16384];
-        while (true) {
+        while (true)
+        {
             var count = await process.StandardOutput.BaseStream.ReadAsync(buffer, token);
             if (count == 0) throw new InvalidOperationException("Evaluator is gestopt.");
             var end = Array.IndexOf(buffer, (byte)'\n', 0, count);
@@ -59,17 +68,20 @@ public sealed class NodeShowEvaluator : IShowEvaluator {
             return response.Clone();
         }
     }
-    public async Task LoadAsync(JsonElement show, CancellationToken cancellationToken) {
+    public async Task LoadAsync(JsonElement show, CancellationToken cancellationToken)
+    {
         var id = (++sequence).ToString();
         await ExchangeAsync(new { version = 1, requestId = id, op = "load", show }, id, cancellationToken);
         lookIds.Clear();
         foreach (var look in show.GetProperty("looks").EnumerateArray()) lookIds.Add(look.GetProperty("id").GetString()!);
         Transition = null;
     }
-    public async Task<InspectionFrame> EvaluateAsync(double beat, PlaybackEngineState state, CancellationToken cancellationToken, JsonElement? live = null) {
+    public async Task<InspectionFrame> EvaluateAsync(double beat, PlaybackEngineState state, CancellationToken cancellationToken, JsonElement? live = null)
+    {
         return await EvaluateCoreAsync(beat, state, null, cancellationToken, live);
     }
-    public async Task ConfigureAudioAsync(PlaybackAudioAnalysis? analysis, CancellationToken cancellationToken) {
+    public async Task ConfigureAudioAsync(PlaybackAudioAnalysis? analysis, CancellationToken cancellationToken)
+    {
         var id = (++sequence).ToString();
         // The null is explicit despite the general serializer's null omission policy.
         await ExchangeAsync(new Dictionary<string, object?> { ["version"] = 1, ["requestId"] = id, ["op"] = "audio", ["analysis"] = analysis }, id, cancellationToken);
@@ -77,13 +89,15 @@ public sealed class NodeShowEvaluator : IShowEvaluator {
     }
     public Task<InspectionFrame> EvaluateAudioAsync(double beat, PlaybackEngineState state, PlaybackAudioPosition audio, CancellationToken cancellationToken, JsonElement? live = null)
         => EvaluateCoreAsync(beat, state, audio, cancellationToken, live);
-    async Task<InspectionFrame> EvaluateCoreAsync(double beat, PlaybackEngineState state, PlaybackAudioPosition? audio, CancellationToken cancellationToken, JsonElement? live) {
+    async Task<InspectionFrame> EvaluateCoreAsync(double beat, PlaybackEngineState state, PlaybackAudioPosition? audio, CancellationToken cancellationToken, JsonElement? live)
+    {
         var id = (++sequence).ToString();
         var reply = await ExchangeAsync(new { version = 1, requestId = id, op = "evaluate", atBeats = beat, state, live, audio }, id, cancellationToken);
         Transition = reply.TryGetProperty("transition", out var transition) ? ReadTransition(transition, state, beat, lookIds) : null;
         return reply.GetProperty("frame").Deserialize<InspectionFrame>(DmxInspection.JsonOptions) ?? throw new InvalidOperationException("Evaluatorframe ontbreekt.");
     }
-    public static PlaybackTransition ReadTransition(JsonElement value, PlaybackEngineState state, double beat, IReadOnlySet<string> lookIds) {
+    public static PlaybackTransition ReadTransition(JsonElement value, PlaybackEngineState state, double beat, IReadOnlySet<string> lookIds)
+    {
         var transition = value.Deserialize<PlaybackTransition>(DmxInspection.JsonOptions) ?? throw new InvalidOperationException("Ongeldige overgangsstatus.");
         if (state.Mode != "automation" || transition.ToLookId != state.ActiveLookId || !lookIds.Contains(transition.FromLookId) || !lookIds.Contains(transition.ToLookId)
             || !double.IsFinite(transition.StartAtBeats) || transition.StartAtBeats < 0 || transition.StartAtBeats > 1e9 + 8
@@ -95,18 +109,22 @@ public sealed class NodeShowEvaluator : IShowEvaluator {
             throw new InvalidOperationException("Ongeldige overgangsstatus.");
         return transition;
     }
-    public async Task<bool> ValidateLiveAsync(JsonElement live, CancellationToken cancellationToken) {
+    public async Task<bool> ValidateLiveAsync(JsonElement live, CancellationToken cancellationToken)
+    {
         var id = (++sequence).ToString();
         var reply = await ExchangeAsync(new { version = 1, requestId = id, op = "validate-live", live }, id, cancellationToken, allowRejection: true);
         return reply.GetProperty("ok").GetBoolean();
     }
-    public async ValueTask DisposeAsync() {
-        try {
+    public async ValueTask DisposeAsync()
+    {
+        try
+        {
             try { process.StandardInput.Close(); } catch (Exception) { }
             try { if (!process.HasExited) process.Kill(entireProcessTree: true); }
             catch (Exception error) when (error is InvalidOperationException or System.ComponentModel.Win32Exception or NotSupportedException) { }
             try { await process.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(2)); } catch (Exception) { }
             try { await stderr.WaitAsync(TimeSpan.FromSeconds(1)); } catch (Exception) { }
-        } finally { process.Dispose(); }
+        }
+        finally { process.Dispose(); }
     }
 }

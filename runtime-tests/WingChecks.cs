@@ -6,7 +6,8 @@ static class WingChecks
 {
     static void Check(bool ok, string message) { if (!ok) throw new Exception("WING: " + message); }
     static async Task Reject<T>(Func<Task> action) where T : Exception { try { await action(); } catch (T) { return; } throw new Exception("WING expected " + typeof(T).Name); }
-    public static async Task Run() {
+    public static async Task Run()
+    {
         await IndexedChannelReadback();
         var roundtrip = WingOsc.Decode(WingOsc.Encode("/test", "abc", 127, .5f));
         Check(roundtrip.Values.SequenceEqual(new object[] { "abc", 127, .5f }), "OSC strings/int/float round trip");
@@ -62,23 +63,32 @@ static class WingChecks
         Check(fake.Writes.Count == writesBefore, "unknown firmware remains probe only");
         Console.WriteLine("WING OSC, strict input, dry run, drift, expiry, single-use, mapping and partial-write checks passed.");
     }
-    static async Task IndexedChannelReadback() {
+    static async Task IndexedChannelReadback()
+    {
         // Captured from the user's first partially configured control: channel 12
         // returns ,sfi ["12", 0.73333335, 11], unlike note/value's zero-based range.
         var fake = new FakeWing();
         fake.Slots.Clear();
         var bindings = new List<WingBinding>();
-        foreach (var bank in new[] { 12, 1, 16 }) {
-            foreach (var kind in new[] { "button", "rotary" }) {
-                for (var index = 1; index <= (kind == "button" ? 8 : 4); index++) {
+        foreach (var bank in new[] { 12, 1, 16 })
+        {
+            foreach (var kind in new[] { "button", "rotary" })
+            {
+                for (var index = 1; index <= (kind == "button" ? 8 : 4); index++)
+                {
                     var binding = new WingBinding(bank, kind, index, $"Bank {bank} {index}");
                     bindings.Add(binding);
                     fake.Slots[WingSync.SlotPath(bank, kind, index)] = new() { ["mode"] = "OFF", ["name"] = "" };
                 }
             }
         }
-        fake.Slots["/$ctl/user/12/1/bu"] = new() {
-            ["mode"] = "MIDINP", ["name"] = "Openingsvuur", ["ch"] = 12, ["note"] = 0, ["val"] = 0,
+        fake.Slots["/$ctl/user/12/1/bu"] = new()
+        {
+            ["mode"] = "MIDINP",
+            ["name"] = "Openingsvuur",
+            ["ch"] = 12,
+            ["note"] = 0,
+            ["val"] = 0,
         };
         fake.Slots["/$ctl/user/16/1/bu"] = new() { ["mode"] = "SOF", ["name"] = "MON1", ["ch"] = 59 };
         fake.Slots["/$ctl/user/16/2/bu"] = new() { ["mode"] = "MUTE", ["name"] = "Legacy", ["ch"] = 0 };
@@ -106,17 +116,20 @@ static class WingChecks
         Check(result.State == "partial" && result.VerifiedSlots == 0 && result.Error?.Contains("Bank 12, knop 1, veld ch") == true,
             "normalization must still reject a genuinely wrong MIDI channel and identify that field");
     }
-    sealed class FakeWing : IWingTransport {
+    sealed class FakeWing : IWingTransport
+    {
         public string Serial = "test";
         public string Firmware = "3.1";
         public bool FailWrites;
         public bool IgnoreChannelWrites;
         public List<(string Path, object Value)> Writes = [];
-        public Dictionary<string, Dictionary<string, object>> Slots = new() {
+        public Dictionary<string, Dictionary<string, object>> Slots = new()
+        {
             ["/$ctl/user/1/1/bu"] = new() { ["mode"] = "MGRP", ["name"] = "Mute", ["mgrp"] = 2 },
             ["/$ctl/user/1/1/enc"] = new() { ["mode"] = "DCA", ["name"] = "Audio", ["dca"] = 1 },
         };
-        public Task<object[]> ReadAsync(string path, CancellationToken ct) {
+        public Task<object[]> ReadAsync(string path, CancellationToken ct)
+        {
             ct.ThrowIfCancellationRequested();
             if (path == "/?") return Task.FromResult<object[]>([$"WING,10.0.0.10,Desk,wing-fullsize,{Serial},{Firmware}"]);
             if (Slots.TryGetValue(path, out var slot)) return Task.FromResult(slot.Keys.Reverse().Cast<object>().Append("$fname").ToArray());
@@ -125,16 +138,19 @@ static class WingChecks
                 return Task.FromResult<object[]>([channel.ToString(), (channel - 1) / 15f, channel - 1]);
             return Task.FromResult<object[]>(value is int n ? [n.ToString(), 0f, n] : [value]);
         }
-        public Task WriteAsync(string path, object value, CancellationToken ct) {
+        public Task WriteAsync(string path, object value, CancellationToken ct)
+        {
             ct.ThrowIfCancellationRequested(); Writes.Add((path, value));
             if (FailWrites) throw new IOException("injected");
             var split = path.LastIndexOf('/'); var slotPath = path[..split]; var key = path[(split + 1)..];
             if (key == "ch" && IgnoreChannelWrites) return Task.CompletedTask;
-            if (key == "mode") {
+            if (key == "mode")
+            {
                 var priorName = Slots[slotPath]["name"];
                 Slots[slotPath] = new() { ["mode"] = value, ["name"] = priorName };
                 if ((string)value != "OFF") { Slots[slotPath]["ch"] = 1; Slots[slotPath][(string)value == "MIDICC" ? "cc" : "note"] = 0; Slots[slotPath]["val"] = 0; }
-            } else Slots[slotPath][key] = value;
+            }
+            else Slots[slotPath][key] = value;
             return Task.CompletedTask;
         }
         public void Dispose() { }

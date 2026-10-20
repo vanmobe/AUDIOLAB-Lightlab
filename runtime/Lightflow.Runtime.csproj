@@ -5,5 +5,5 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <CopilotSkipCliDownload>true</CopilotSkipCliDownload>
   </PropertyGroup>
-  <ItemGroup><PackageReference Include="GitHub.Copilot.SDK" Version="1.0.13" /></ItemGroup>
+  <ItemGroup><PackageReference Include="GitHub.Copilot.SDK" Version="1.0.24" /></ItemGroup>
 </Project>
